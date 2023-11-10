@@ -1,0 +1,35 @@
+<div class="outer">
+    <div class="inner">
+        <h2>Sign Up</h2>
+        <!-- [formGroup]="signupForm" (ngSubmit)="onSubmit()" -->
+        <form>
+            <div class="mb-3">
+                <label for="name" class="form-label">Name:</label>
+                <input type="text" class="form-control" id="name" formControlName="username" required aria-describedby="emailHelp" required>
+            </div>
+            <div class="mb-3">
+                <label for="email" class="form-label">Email:</label>
+                <input type="email" class="form-control" id="email" formControlName="username" required aria-describedby="emailHelp" required>
+            </div>
+            
+            <div class="mb-3">
+                <label for="password" class="form-label">Password:</label>
+                <input type="password" class="form-control" id="password" formControlName="password" required>
+            </div>
+            <div class="userType mb-3">
+                <label for="userType">User Type: </label> 
+                <input type="radio" class="ms-3" name="user" id="patient">
+                <label for="patient">Patient</label>
+
+                <input type="radio" class="ms-3" name="user" id="doctor">
+                <label for="doctor">Doctor</label>
+            </div>
+
+            <div class="buttons">
+                <button type="submit" class="btn btn-primary"><a routerLink="/log">Sign Up</a></button>
+            </div>
+        </form>
+
+        <!-- <a routerLink="/signup">Sign Up</a> -->
+    </div>
+</div>
