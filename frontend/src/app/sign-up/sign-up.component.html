@@ -1,8 +1,7 @@
 <div class="outer">
     <div class="inner">
         <h2>Sign Up</h2>
-        <!-- [formGroup]="signupForm" (ngSubmit)="onSubmit()" -->
-        <form [formGroup]="signupForm" (ngSubmit)="onSubmit()">
+        <form>
             <div class="mb-3">
                 <label for="DoctorName" class="form-label">Name:</label>
                 <input type="text" class="form-control" id="DoctorName" formControlName="DoctorName" required aria-describedby="emailHelp" required>
@@ -25,10 +24,22 @@
                 <label for="doctor">Doctor</label>
             </div>
             <div class="buttons">
-                <button type="submit" class="btn btn-primary"><a routerLink="/log">Sign Up</a></button>
+                <button type="submit" class="btn btn-primary"><a routerLink="/">Sign Up</a></button>
             </div>
         </form>
-
-        <!-- <a routerLink="/signup">Sign Up</a> -->
     </div>
 </div>
+
+<!-- signup.component.html -->
+<!-- <form [formGroup]="signupdata" (ngSubmit)="signUp()">
+    <label for="doctorName">Name:</label>
+    <input type="text" id="doctorName" formControlName="doctorName">
+
+    <label for="doctorEmail">Email:</label>
+    <input type="email" id="doctorEmail" formControlName="doctorEmail">
+
+    <label for="doctorPassword">Password:</label>
+    <input type="password" id="doctorPassword" formControlName="doctorPassword">
+
+    <button type="submit" [disabled]="signupdata.invalid">Sign Up</button>
+</form> -->
