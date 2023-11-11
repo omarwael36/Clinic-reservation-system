@@ -4,47 +4,45 @@ import (
 	"Clinic-Reservation-System/config"
 	"Clinic-Reservation-System/helper"
 	"Clinic-Reservation-System/model"
-	"encoding/json"
 	"log"
 	"net/http"
-	"time"
+
+	"github.com/gin-gonic/gin"
 )
 
-func DoctorSignUp(w http.ResponseWriter, r *http.Request) {
+func DoctorSignUp(c *gin.Context) {
 	var response model.Response
 	db := config.DatabaseConnection()
 	defer db.Close()
 
-	if r.Method != http.MethodPost {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+	if c.Request.Method != http.MethodPost {
+		c.AbortWithStatusJSON(http.StatusMethodNotAllowed, gin.H{"error": "Method not allowed"})
 		return
 	}
 
-	err := r.ParseForm()
-	if err != nil {
-		http.Error(w, "Bad request", http.StatusBadRequest)
-		log.Printf("Error parsing form data: %v", err)
+	var input model.Doctor
+	if err := c.ShouldBind(&input); err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Bad request"})
+		log.Printf("Error binding form data: %v", err)
 		return
 	}
 
-	name := r.FormValue("DoctorName")
-	email := r.FormValue("DoctorEmail")
-	password := r.FormValue("DoctorPassword")
-
-	if name == "" || email == "" || password == "" {
-		http.Error(w, "All fields are required", http.StatusBadRequest)
+	if input.Name == "" || input.Email == "" || input.Password == "" {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "All fields are required"})
 		return
 	}
+
 	var count int
-	db.QueryRow("SELECT COUNT(*) FROM doctor WHERE DoctorEmail = ?", email).Scan(&count)
+	db.QueryRow("SELECT COUNT(*) FROM doctor WHERE DoctorEmail = ?", input.Email).Scan(&count)
 	if count > 0 {
-		http.Error(w, "User Already Exist", http.StatusBadRequest)
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "User Already Exist"})
 		return
 	}
 
-	_, err = db.Exec("INSERT INTO doctor (DoctorName, DoctorEmail, DoctorPassword) VALUES (?, ?, ?)", name, email, password)
+	_, err := db.Exec("INSERT INTO doctor (DoctorName, DoctorEmail, DoctorPassword) VALUES (?, ?, ?)",
+		input.Name, input.Email, input.Password)
 	if err != nil {
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
 		log.Printf("Error inserting data into the database: %v", err)
 		return
 	}
@@ -53,45 +51,44 @@ func DoctorSignUp(w http.ResponseWriter, r *http.Request) {
 	response.Message = "Sign-up is done successfully!"
 	log.Print("Data inserted into the database")
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(response)
+	c.JSON(http.StatusOK, response)
 }
 
-func DoctorSignIn(w http.ResponseWriter, r *http.Request) {
+func DoctorSignIn(c *gin.Context) {
 	var response model.Response
 	db := config.DatabaseConnection()
 	defer db.Close()
 
-	if r.Method != http.MethodGet {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+	if c.Request.Method != http.MethodGet {
+		c.AbortWithStatusJSON(http.StatusMethodNotAllowed, gin.H{"error": "Method not allowed"})
 		return
 	}
 
-	err := r.ParseForm()
-	if err != nil {
-		http.Error(w, "Bad request", http.StatusBadRequest)
-		log.Printf("Error parsing form data: %v", err)
+	var input model.Doctor
+	if err := c.ShouldBind(&input); err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Bad request"})
+		log.Printf("Error binding form data: %v", err)
 		return
 	}
-	email := r.FormValue("DoctorEmail")
-	password := r.FormValue("DoctorPassword")
-	if email == "" || password == "" {
-		http.Error(w, "All fields are required", http.StatusBadRequest)
+
+	if input.Email == "" || input.Password == "" {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "All fields are required"})
 		return
 	}
+
 	var count int
-	db.QueryRow("SELECT COUNT(*) FROM doctor WHERE DoctorEmail = ?", email).Scan(&count)
+	db.QueryRow("SELECT COUNT(*) FROM doctor WHERE DoctorEmail = ?", input.Email).Scan(&count)
 	if count == 0 {
-		http.Error(w, "There is no such user!", http.StatusBadRequest)
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "There is no such user!"})
 		return
 	}
+
 	var storedPassword string
 	var DoctorID int
-	err = db.QueryRow("SELECT DoctorPassword, DoctorID FROM doctor WHERE DoctorEmail = ?", email).Scan(&storedPassword, &DoctorID)
+	err := db.QueryRow("SELECT DoctorPassword, DoctorID FROM doctor WHERE DoctorEmail = ?", input.Email).Scan(&storedPassword, &DoctorID)
 
-	if err != nil || password != storedPassword {
-		http.Error(w, "Invalid Credintials", http.StatusInternalServerError)
+	if err != nil || input.Password != storedPassword {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Invalid Credentials"})
 		log.Printf("Error Sign in: %v", err)
 		return
 	}
@@ -99,48 +96,46 @@ func DoctorSignIn(w http.ResponseWriter, r *http.Request) {
 	response.Status = http.StatusOK
 	response.Message = "Sign-in is done successfully!"
 	log.Print("Sign-in is done successfully!")
-	helper.StoreUserInSession(w, r, DoctorID, "Doctor")
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(response)
+	helper.StoreUserInSession(c.Writer, c.Request, DoctorID, "Doctor")
+	c.JSON(http.StatusOK, response)
 }
 
-func SetSchedule(w http.ResponseWriter, r *http.Request) {
+func SetSchedule(c *gin.Context) {
 	var response model.Response
 	db := config.DatabaseConnection()
 	defer db.Close()
 
-	if r.Method != http.MethodPost {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+	if c.Request.Method != http.MethodPost {
+		c.AbortWithStatusJSON(http.StatusMethodNotAllowed, gin.H{"error": "Method not allowed"})
 		return
 	}
 
-	err := r.ParseForm()
-	if err != nil {
-		http.Error(w, "Bad request", http.StatusBadRequest)
-		log.Printf("Error parsing form data: %v", err)
+	var input model.Slot
+	if err := c.ShouldBind(&input); err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Bad request"})
+		log.Printf("Error binding form data: %v", err)
 		return
 	}
-	DoctorID, _ := helper.GetUserFromSession(r)
-	slotDateTimeStr := r.FormValue("slotDateTime")
 
-	slotDateTime, err := time.Parse("2006-01-02T15:04:05", slotDateTimeStr)
+	DoctorID, _ := helper.GetUserFromSession(c.Request)
+	slotDateTime, err := input.ParseSlotDateTime()
 	if err != nil {
-		http.Error(w, "Invalid date format", http.StatusBadRequest)
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Invalid date format"})
 		log.Printf("Error parsing slotDateTime: %v", err)
 		return
 	}
+
 	log.Printf("Retrieved DoctorID from session: %d", DoctorID)
 	var doctorCount int
 	db.QueryRow("SELECT COUNT(*) FROM doctor WHERE DoctorID = ?", DoctorID).Scan(&doctorCount)
 	if doctorCount == 0 {
-		http.Error(w, "Doctor with provided DoctorID does not exist", http.StatusBadRequest)
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Doctor with provided DoctorID does not exist"})
 		return
 	}
 
 	_, err = db.Exec("INSERT INTO slot (SlotDateTime, DoctorID) VALUES (?, ?)", slotDateTime, DoctorID)
 	if err != nil {
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
 		log.Printf("Error inserting data into the database: %v", err)
 		return
 	}
@@ -149,7 +144,5 @@ func SetSchedule(w http.ResponseWriter, r *http.Request) {
 	response.Message = "Slot added successfully!"
 	log.Print("Slot added to the database")
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(response)
+	c.JSON(http.StatusOK, response)
 }

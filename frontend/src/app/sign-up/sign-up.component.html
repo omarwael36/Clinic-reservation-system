@@ -1,19 +1,19 @@
-<div class="outer">
+<!-- sign-up.component.html -->
+<div class = "outer">
     <div class="inner">
         <h2>Sign Up</h2>
-        <form>
+        <form [formGroup]="signUpForm" (ngSubmit)="signUp()">
             <div class="mb-3">
-                <label for="DoctorName" class="form-label">Name:</label>
-                <input type="text" class="form-control" id="DoctorName" formControlName="DoctorName" required aria-describedby="emailHelp" required>
+              <label for="doctorName" class="form-label">Name:</label>
+              <input type="text" class="form-control" id="doctorName" formControlName="doctorName" required>
             </div>
             <div class="mb-3">
-                <label for="DoctorEmail" class="form-label">Email:</label>
-                <input type="email" class="form-control" id="DoctorEmail" formControlName="DoctorEmail" required aria-describedby="emailHelp" required>
+              <label for="doctorEmail" class="form-label">Email:</label>
+              <input type="email" class="form-control" id="doctorEmail" formControlName="doctorEmail" required>
             </div>
-            
             <div class="mb-3">
-                <label for="DoctorPassword" class="form-label">Password:</label>
-                <input type="password" class="form-control" id="DoctorPassword" formControlName="DoctorPassword" required>
+              <label for="doctorPassword" class="form-label">Password:</label>
+              <input type="password" class="form-control" id="doctorPassword" formControlName="doctorPassword" required>
             </div>
             <div class="userType mb-3">
                 <label for="userType">User Type: </label> 
@@ -24,22 +24,9 @@
                 <label for="doctor">Doctor</label>
             </div>
             <div class="buttons">
-                <button type="submit" class="btn btn-primary"><a routerLink="/">Sign Up</a></button>
+              <button type="submit" class="btn btn-primary">Sign Up</button>
             </div>
-        </form>
+          </form>
     </div>
 </div>
 
-<!-- signup.component.html -->
-<!-- <form [formGroup]="signupdata" (ngSubmit)="signUp()">
-    <label for="doctorName">Name:</label>
-    <input type="text" id="doctorName" formControlName="doctorName">
-
-    <label for="doctorEmail">Email:</label>
-    <input type="email" id="doctorEmail" formControlName="doctorEmail">
-
-    <label for="doctorPassword">Password:</label>
-    <input type="password" id="doctorPassword" formControlName="doctorPassword">
-
-    <button type="submit" [disabled]="signupdata.invalid">Sign Up</button>
-</form> -->

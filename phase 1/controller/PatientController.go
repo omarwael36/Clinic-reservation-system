@@ -4,47 +4,46 @@ import (
 	"Clinic-Reservation-System/config"
 	"Clinic-Reservation-System/helper"
 	"Clinic-Reservation-System/model"
-	"encoding/json"
 	"log"
 	"net/http"
 	"strconv"
+
+	"github.com/gin-gonic/gin"
 )
 
-func PatientSignUp(w http.ResponseWriter, r *http.Request) {
+func PatientSignUp(c *gin.Context) {
 	var response model.Response
 	db := config.DatabaseConnection()
 	defer db.Close()
 
-	if r.Method != http.MethodPost {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+	if c.Request.Method != http.MethodPost {
+		c.AbortWithStatusJSON(http.StatusMethodNotAllowed, gin.H{"error": "Method not allowed"})
 		return
 	}
 
-	err := r.ParseForm()
-	if err != nil {
-		http.Error(w, "Bad request", http.StatusBadRequest)
-		log.Printf("Error parsing form data: %v", err)
+	var input model.Patient
+	if err := c.ShouldBind(&input); err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Bad request"})
+		log.Printf("Error binding form data: %v", err)
 		return
 	}
 
-	name := r.FormValue("patientName")
-	email := r.FormValue("patientEmail")
-	password := r.FormValue("patientPassword")
-
-	if name == "" || email == "" || password == "" {
-		http.Error(w, "All fields are required", http.StatusBadRequest)
+	if input.Name == "" || input.Email == "" || input.Password == "" {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "All fields are required"})
 		return
 	}
+
 	var count int
-	db.QueryRow("SELECT COUNT(*) FROM patient WHERE patientEmail = ?", email).Scan(&count)
+	db.QueryRow("SELECT COUNT(*) FROM patient WHERE patientEmail = ?", input.Email).Scan(&count)
 	if count > 0 {
-		http.Error(w, "User Already Exist", http.StatusBadRequest)
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "User Already Exist"})
 		return
 	}
 
-	_, err = db.Exec("INSERT INTO patient (patientName, patientEmail, patientPassword) VALUES (?, ?, ?)", name, email, password)
+	_, err := db.Exec("INSERT INTO patient (patientName, patientEmail, patientPassword) VALUES (?, ?, ?)",
+		input.Name, input.Email, input.Password)
 	if err != nil {
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
 		log.Printf("Error inserting data into the database: %v", err)
 		return
 	}
@@ -53,45 +52,44 @@ func PatientSignUp(w http.ResponseWriter, r *http.Request) {
 	response.Message = "Sign-up is done successfully!"
 	log.Print("Data inserted into the database")
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(response)
+	c.JSON(http.StatusOK, response)
 }
 
-func PatientSignIn(w http.ResponseWriter, r *http.Request) {
+func PatientSignIn(c *gin.Context) {
 	var response model.Response
 	db := config.DatabaseConnection()
 	defer db.Close()
 
-	if r.Method != http.MethodGet {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+	if c.Request.Method != http.MethodGet {
+		c.AbortWithStatusJSON(http.StatusMethodNotAllowed, gin.H{"error": "Method not allowed"})
 		return
 	}
 
-	err := r.ParseForm()
-	if err != nil {
-		http.Error(w, "Bad request", http.StatusBadRequest)
-		log.Printf("Error parsing form data: %v", err)
+	var input model.Patient
+	if err := c.ShouldBind(&input); err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Bad request"})
+		log.Printf("Error binding form data: %v", err)
 		return
 	}
-	email := r.FormValue("patientEmail")
-	password := r.FormValue("patientPassword")
-	if email == "" || password == "" {
-		http.Error(w, "All fields are required", http.StatusBadRequest)
+
+	if input.Email == "" || input.Password == "" {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "All fields are required"})
 		return
 	}
+
 	var count int
-	db.QueryRow("SELECT COUNT(*) FROM patient WHERE patientEmail = ?", email).Scan(&count)
+	db.QueryRow("SELECT COUNT(*) FROM patient WHERE patientEmail = ?", input.Email).Scan(&count)
 	if count == 0 {
-		http.Error(w, "There is no such user!", http.StatusBadRequest)
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "There is no such user!"})
 		return
 	}
+
 	var storedPassword string
 	var PatientID int
-	err = db.QueryRow("SELECT patientPassword, PatientID FROM patient WHERE patientEmail = ?", email).Scan(&storedPassword, &PatientID)
+	err := db.QueryRow("SELECT patientPassword, PatientID FROM patient WHERE patientEmail = ?", input.Email).Scan(&storedPassword, &PatientID)
 
-	if err != nil || password != storedPassword {
-		http.Error(w, "Invalid Credintials", http.StatusInternalServerError)
+	if err != nil || input.Password != storedPassword {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Invalid Credentials"})
 		log.Printf("Error Sign in: %v", err)
 		return
 	}
@@ -99,13 +97,11 @@ func PatientSignIn(w http.ResponseWriter, r *http.Request) {
 	response.Status = http.StatusOK
 	response.Message = "Sign-in is done successfully!"
 	log.Print("Sign-in is done successfully!")
-	helper.StoreUserInSession(w, r, PatientID, "Patient")
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(response)
+	helper.StoreUserInSession(c.Writer, c.Request, PatientID, "Patient")
+	c.JSON(http.StatusOK, response)
 }
 
-func ShowAllDoctors(w http.ResponseWriter, r *http.Request) {
+func ShowAllDoctors(c *gin.Context) {
 	var doctor model.DoctorResponse
 	var response model.Response
 	var arrDoctorResponse []model.DoctorResponse
@@ -113,8 +109,8 @@ func ShowAllDoctors(w http.ResponseWriter, r *http.Request) {
 	db := config.DatabaseConnection()
 	defer db.Close()
 
-	if r.Method != http.MethodGet {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+	if c.Request.Method != http.MethodGet {
+		c.AbortWithStatusJSON(http.StatusMethodNotAllowed, gin.H{"error": "Method not allowed"})
 		return
 	}
 
@@ -134,43 +130,37 @@ func ShowAllDoctors(w http.ResponseWriter, r *http.Request) {
 	response.Message = "Success"
 	response.Data = arrDoctorResponse
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(response)
+	c.JSON(http.StatusOK, response)
 }
-func ShowDoctorSlots(w http.ResponseWriter, r *http.Request) {
+
+func ShowDoctorSlots(c *gin.Context) {
 	var response model.Response
 	db := config.DatabaseConnection()
 	defer db.Close()
 
-	if r.Method != http.MethodGet {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+	if c.Request.Method != http.MethodGet {
+		c.AbortWithStatusJSON(http.StatusMethodNotAllowed, gin.H{"error": "Method not allowed"})
 		return
 	}
 
-	err := r.ParseForm()
-	if err != nil {
-		http.Error(w, "Bad request", http.StatusBadRequest)
-		log.Printf("Error parsing form data: %v", err)
-		return
-	}
-	doctorID := r.FormValue("DoctorID")
+	doctorID := c.Query("DoctorID")
+
 	var doctorCount int
-	err = db.QueryRow("SELECT COUNT(*) FROM doctor WHERE DoctorID = ?", doctorID).Scan(&doctorCount)
+	err := db.QueryRow("SELECT COUNT(*) FROM doctor WHERE DoctorID = ?", doctorID).Scan(&doctorCount)
 	if err != nil {
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
 		log.Printf("Error querying doctor count: %v", err)
 		return
 	}
 
 	if doctorCount == 0 {
-		http.Error(w, "Doctor with provided DoctorID does not exist", http.StatusBadRequest)
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Doctor with provided DoctorID does not exist"})
 		return
 	}
 
 	rows, err := db.Query("SELECT SlotID, SlotDateTime, DoctorID FROM slot WHERE DoctorID = ? AND PatientID IS NULL", doctorID)
 	if err != nil {
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
 		log.Printf("Error selecting data from the database: %v", err)
 		return
 	}
@@ -182,7 +172,7 @@ func ShowDoctorSlots(w http.ResponseWriter, r *http.Request) {
 		err := rows.Scan(&slot.SlotID, &slot.SlotDateTime, &slot.DoctorID)
 		if err != nil {
 			log.Printf("Error scanning slot: %v", err)
-			http.Error(w, "Internal server error", http.StatusInternalServerError)
+			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
 			return
 		}
 
@@ -194,55 +184,43 @@ func ShowDoctorSlots(w http.ResponseWriter, r *http.Request) {
 	response.Message = "Slots retrieved successfully!"
 	response.Data = slots
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(response)
+	c.JSON(http.StatusOK, response)
 }
 
-func ReserveSlot(w http.ResponseWriter, r *http.Request) {
+func ReserveSlot(c *gin.Context) {
 	var response model.Response
 	db := config.DatabaseConnection()
 	defer db.Close()
 
-	if r.Method != http.MethodPut {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+	if c.Request.Method != http.MethodPut {
+		c.JSON(http.StatusMethodNotAllowed, gin.H{"error": "Method not allowed"})
 		return
 	}
 
-	err := r.ParseForm()
-	if err != nil {
-		http.Error(w, "Bad request", http.StatusBadRequest)
-		log.Printf("Error parsing form data: %v", err)
-		return
-	}
-
-	SlotIDStr := r.FormValue("SlotID")
-	PatientID, _ := helper.GetUserFromSession(r)
-
-	SlotID, err := strconv.Atoi(SlotIDStr)
-	if err != nil {
-		http.Error(w, "Invalid SlotID", http.StatusBadRequest)
-		log.Printf("Error parsing SlotID: %v", err)
+	var input model.ReserveSlotRequest
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Bad request"})
+		log.Printf("Error binding form data: %v", err)
 		return
 	}
 
 	var slotCount int
-	db.QueryRow("SELECT COUNT(*) FROM slot WHERE SlotID = ?", SlotID).Scan(&slotCount)
+	db.QueryRow("SELECT COUNT(*) FROM slot WHERE SlotID = ?", input.SlotID).Scan(&slotCount)
 	if slotCount == 0 {
-		http.Error(w, "Slot with provided SlotID does not exist", http.StatusBadRequest)
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Slot with provided SlotID does not exist"})
 		return
 	}
 
 	var patientCount int
-	db.QueryRow("SELECT COUNT(*) FROM patient WHERE PatientID = ?", PatientID).Scan(&patientCount)
+	db.QueryRow("SELECT COUNT(*) FROM patient WHERE PatientID = ?", input.PatientID).Scan(&patientCount)
 	if patientCount == 0 {
-		http.Error(w, "Patient with provided PatientID does not exist", http.StatusBadRequest)
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Patient with provided PatientID does not exist"})
 		return
 	}
 
-	_, err = db.Exec("UPDATE slot SET PatientID = ? WHERE SlotID = ?", PatientID, SlotID)
+	_, err := db.Exec("UPDATE slot SET PatientID = ? WHERE SlotID = ?", input.PatientID, input.SlotID)
 	if err != nil {
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
 		log.Printf("Error updating slot in the database: %v", err)
 		return
 	}
@@ -251,88 +229,57 @@ func ReserveSlot(w http.ResponseWriter, r *http.Request) {
 	response.Message = "Slot reserved successfully!"
 	log.Print("Slot reserved in the database")
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(response)
+	c.JSON(http.StatusOK, response)
 }
 
-func UpdateAppointment(w http.ResponseWriter, r *http.Request) {
+func UpdateAppointment(c *gin.Context) {
 	var response model.Response
 	db := config.DatabaseConnection()
 	defer db.Close()
 
-	if r.Method != http.MethodPut {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+	if c.Request.Method != http.MethodPut {
+		c.JSON(http.StatusMethodNotAllowed, gin.H{"error": "Method not allowed"})
 		return
 	}
 
-	err := r.ParseForm()
-	if err != nil {
-		http.Error(w, "Bad request", http.StatusBadRequest)
-		log.Printf("Error parsing form data: %v", err)
+	var input model.UpdateAppointmentRequest
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Bad request"})
+		log.Printf("Error binding form data: %v", err)
 		return
 	}
 
-	AppointmentIDStr := r.FormValue("AppointmentID")
-	NewSlotIDStr := r.FormValue("NewSlotID")
-	NewDoctorIDStr := r.FormValue("NewDoctorID")
-	NewPatientIDStr := r.FormValue("NewPatientID")
-
-	AppointmentID, err := strconv.Atoi(AppointmentIDStr)
-	if err != nil {
-		http.Error(w, "Invalid AppointmentID", http.StatusBadRequest)
-		log.Printf("Error parsing AppointmentID: %v", err)
-		return
-	}
-
-	NewSlotID, err := strconv.Atoi(NewSlotIDStr)
-	if err != nil {
-		http.Error(w, "Invalid NewSlotID", http.StatusBadRequest)
-		log.Printf("Error parsing NewSlotID: %v", err)
-		return
-	}
-
-	NewDoctorID, err := strconv.Atoi(NewDoctorIDStr)
-	if err != nil {
-		http.Error(w, "Invalid NewDoctorID", http.StatusBadRequest)
-		log.Printf("Error parsing NewDoctorID: %v", err)
-		return
-	}
-
-	NewPatientID, err := strconv.Atoi(NewPatientIDStr)
-	if err != nil {
-		http.Error(w, "Invalid NewPatientID", http.StatusBadRequest)
-		log.Printf("Error parsing NewPatientID: %v", err)
-		return
-	}
 	var appointmentCount int
-	db.QueryRow("SELECT COUNT(*) FROM slot WHERE SlotID = ?", AppointmentID).Scan(&appointmentCount)
+	db.QueryRow("SELECT COUNT(*) FROM slot WHERE SlotID = ?", input.AppointmentID).Scan(&appointmentCount)
 	if appointmentCount == 0 {
-		http.Error(w, "Appointment with provided AppointmentID does not exist", http.StatusBadRequest)
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Appointment with provided AppointmentID does not exist"})
 		return
 	}
+
 	var slotCount int
-	db.QueryRow("SELECT COUNT(*) FROM slot WHERE SlotID = ? AND DoctorID = ?", NewSlotID, NewDoctorID).Scan(&slotCount)
+	db.QueryRow("SELECT COUNT(*) FROM slot WHERE SlotID = ? AND DoctorID = ?", input.NewSlotID, input.NewDoctorID).Scan(&slotCount)
 	if slotCount == 0 {
-		http.Error(w, "Slot with provided NewSlotID and NewDoctorID does not exist", http.StatusBadRequest)
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Slot with provided NewSlotID and NewDoctorID does not exist"})
 		return
 	}
+
 	var patientCount int
-	db.QueryRow("SELECT COUNT(*) FROM patient WHERE PatientID = ?", NewPatientID).Scan(&patientCount)
+	db.QueryRow("SELECT COUNT(*) FROM patient WHERE PatientID = ?", input.NewPatientID).Scan(&patientCount)
 	if patientCount == 0 {
-		http.Error(w, "Patient with provided NewPatientID does not exist", http.StatusBadRequest)
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Patient with provided NewPatientID does not exist"})
 		return
 	}
-	_, err = db.Exec("UPDATE slot SET PatientID = NULL WHERE SlotID = ?", AppointmentID)
+
+	_, err := db.Exec("UPDATE slot SET PatientID = NULL WHERE SlotID = ?", input.AppointmentID)
 	if err != nil {
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
 		log.Printf("Error updating appointment in the database: %v", err)
 		return
 	}
 
-	_, err = db.Exec("UPDATE slot SET PatientID = ? WHERE SlotID = ?", NewPatientID, NewSlotID)
+	_, err = db.Exec("UPDATE slot SET PatientID = ? WHERE SlotID = ?", input.NewPatientID, input.NewSlotID)
 	if err != nil {
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
 		log.Printf("Error updating appointment in the database: %v", err)
 		return
 	}
@@ -341,33 +288,31 @@ func UpdateAppointment(w http.ResponseWriter, r *http.Request) {
 	response.Message = "Appointment updated successfully!"
 	log.Print("Appointment updated in the database")
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(response)
+	c.JSON(http.StatusOK, response)
 }
 
-func CancelAppointment(w http.ResponseWriter, r *http.Request) {
+func CancelAppointment(c *gin.Context) {
 	var response model.Response
 	db := config.DatabaseConnection()
 	defer db.Close()
 
-	if r.Method != http.MethodDelete {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+	if c.Request.Method != http.MethodDelete {
+		c.JSON(http.StatusMethodNotAllowed, gin.H{"error": "Method not allowed"})
 		return
 	}
 
-	patientID, _ := helper.GetUserFromSession(r)
+	patientID, _ := helper.GetUserFromSession(c.Request)
 
-	slotIDStr := r.FormValue("slotId")
+	slotIDStr := c.Query("slotId")
 
 	if slotIDStr == "" {
-		http.Error(w, "Slot ID is required", http.StatusBadRequest)
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Slot ID is required"})
 		return
 	}
 
 	slotID, err := strconv.Atoi(slotIDStr)
 	if err != nil {
-		http.Error(w, "Invalid slot ID", http.StatusBadRequest)
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid slot ID"})
 		log.Printf("Error parsing slot ID: %v", err)
 		return
 	}
@@ -375,13 +320,13 @@ func CancelAppointment(w http.ResponseWriter, r *http.Request) {
 	var count int
 	db.QueryRow("SELECT COUNT(*) FROM slot WHERE PatientID = ? AND SlotID = ?", patientID, slotID).Scan(&count)
 	if count == 0 {
-		http.Error(w, "No appointment with this ID", http.StatusBadRequest)
+		c.JSON(http.StatusBadRequest, gin.H{"error": "No appointment with this ID"})
 		return
 	}
 
 	_, err = db.Exec("UPDATE slot SET PatientID = NULL WHERE PatientID = ? AND SlotID = ?", patientID, slotID)
 	if err != nil {
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
 		log.Printf("Cannot cancel appointment: %v", err)
 		return
 	}
@@ -392,33 +337,31 @@ func CancelAppointment(w http.ResponseWriter, r *http.Request) {
 	response.Message = "Cancel appointment success"
 	log.Print("Appointment canceled from the database")
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(response)
+	c.JSON(http.StatusOK, response)
 }
 
-func ShowAllReservations(w http.ResponseWriter, r *http.Request) {
+func ShowAllReservations(c *gin.Context) {
 	var response model.Response
 	db := config.DatabaseConnection()
 	defer db.Close()
 
-	if r.Method != http.MethodGet {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+	if c.Request.Method != http.MethodGet {
+		c.JSON(http.StatusMethodNotAllowed, gin.H{"error": "Method not allowed"})
 		return
 	}
 
-	patientID, _ := helper.GetUserFromSession(r)
+	patientID, _ := helper.GetUserFromSession(c.Request)
 
 	var count int
 	db.QueryRow("SELECT COUNT(*) FROM slot WHERE PatientID = ? ", patientID).Scan(&count)
 	if count == 0 {
-		http.Error(w, "No reserved appointments", http.StatusBadRequest)
+		c.JSON(http.StatusBadRequest, gin.H{"error": "No reserved appointments"})
 		return
 	}
 
 	rows, err := db.Query("SELECT SlotID, SlotDateTime, DoctorID, PatientID FROM slot WHERE PatientID = ? ", patientID)
 	if err != nil {
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
 		log.Printf("Cannot show reservations: %v", err)
 		return
 	}
@@ -449,7 +392,5 @@ func ShowAllReservations(w http.ResponseWriter, r *http.Request) {
 	response.Message = "Printed all reservations"
 	response.Data = reservedSlots
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(response)
+	c.JSON(http.StatusOK, response)
 }
