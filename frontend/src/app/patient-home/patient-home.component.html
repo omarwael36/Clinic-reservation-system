@@ -54,14 +54,16 @@
           <td>Actions</td>
         </tr>
         <tr *ngFor="let appointment of appointments">
-          <td>{{ appointment.SlotDateTime }}</td>
-          <td>{{ appointment.DoctorID }}</td>
+          <td>{{ appointment?.SlotDateTime }}</td>
+          <td>{{ appointment?.DoctorID }}</td>
+          
           <td>
             <button type="button" class="btn btn-primary" (click)="updateAppointment(appointment.SlotID, appointment.DoctorID, appointment.NewSlotID, appointment.NewDoctorID)">Edit</button>
             <button type="button" class="btn btn-danger" (click)="cancelAppointment(appointment.SlotID)">Cancel</button>
           </td>
         </tr>
       </table>
+      <button type="button" class="btn btn-info" (click)="loadAppointments()">Show All Appointments</button>
   
       <!-- Your new appointment creation UI -->
       <h3>Create new appointment:</h3>

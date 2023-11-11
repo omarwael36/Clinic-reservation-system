@@ -37,6 +37,7 @@ export class PatientHomeComponent implements OnInit {
       },
       (error: any) => {
         console.error(error);
+        
       }
     );
   }
