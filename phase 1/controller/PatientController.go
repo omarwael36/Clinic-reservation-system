@@ -60,7 +60,7 @@ func PatientSignIn(c *gin.Context) {
 	db := config.DatabaseConnection()
 	defer db.Close()
 
-	if c.Request.Method != http.MethodGet {
+	if c.Request.Method != http.MethodPost {
 		c.AbortWithStatusJSON(http.StatusMethodNotAllowed, gin.H{"error": "Method not allowed"})
 		return
 	}
@@ -203,7 +203,11 @@ func ReserveSlot(c *gin.Context) {
 		log.Printf("Error binding form data: %v", err)
 		return
 	}
-
+	patientID, userType := helper.GetUserFromSession(c.Request)
+	if userType != "Patient" {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return
+	}
 	var slotCount int
 	db.QueryRow("SELECT COUNT(*) FROM slot WHERE SlotID = ?", input.SlotID).Scan(&slotCount)
 	if slotCount == 0 {
@@ -212,13 +216,13 @@ func ReserveSlot(c *gin.Context) {
 	}
 
 	var patientCount int
-	db.QueryRow("SELECT COUNT(*) FROM patient WHERE PatientID = ?", input.PatientID).Scan(&patientCount)
+	db.QueryRow("SELECT COUNT(*) FROM patient WHERE PatientID = ?", patientID).Scan(&patientCount)
 	if patientCount == 0 {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Patient with provided PatientID does not exist"})
 		return
 	}
 
-	_, err := db.Exec("UPDATE slot SET PatientID = ? WHERE SlotID = ?", input.PatientID, input.SlotID)
+	_, err := db.Exec("UPDATE slot SET PatientID = ? WHERE SlotID = ?", patientID, input.SlotID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
 		log.Printf("Error updating slot in the database: %v", err)
@@ -249,6 +253,11 @@ func UpdateAppointment(c *gin.Context) {
 		return
 	}
 
+	patientID, userType := helper.GetUserFromSession(c.Request)
+	if userType != "Patient" {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return
+	}
 	var appointmentCount int
 	db.QueryRow("SELECT COUNT(*) FROM slot WHERE SlotID = ?", input.AppointmentID).Scan(&appointmentCount)
 	if appointmentCount == 0 {
@@ -264,7 +273,7 @@ func UpdateAppointment(c *gin.Context) {
 	}
 
 	var patientCount int
-	db.QueryRow("SELECT COUNT(*) FROM patient WHERE PatientID = ?", input.NewPatientID).Scan(&patientCount)
+	db.QueryRow("SELECT COUNT(*) FROM patient WHERE PatientID = ?", patientID).Scan(&patientCount)
 	if patientCount == 0 {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Patient with provided NewPatientID does not exist"})
 		return
@@ -277,7 +286,7 @@ func UpdateAppointment(c *gin.Context) {
 		return
 	}
 
-	_, err = db.Exec("UPDATE slot SET PatientID = ? WHERE SlotID = ?", input.NewPatientID, input.NewSlotID)
+	_, err = db.Exec("UPDATE slot SET PatientID = ? WHERE SlotID = ?", patientID, input.NewSlotID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
 		log.Printf("Error updating appointment in the database: %v", err)
@@ -301,7 +310,11 @@ func CancelAppointment(c *gin.Context) {
 		return
 	}
 
-	patientID, _ := helper.GetUserFromSession(c.Request)
+	patientID, userType := helper.GetUserFromSession(c.Request)
+	if userType != "Patient" {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return
+	}
 
 	slotIDStr := c.Query("slotId")
 
@@ -350,7 +363,11 @@ func ShowAllReservations(c *gin.Context) {
 		return
 	}
 
-	patientID, _ := helper.GetUserFromSession(c.Request)
+	patientID, userType := helper.GetUserFromSession(c.Request)
+	if userType != "Patient" {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return
+	}
 
 	var count int
 	db.QueryRow("SELECT COUNT(*) FROM slot WHERE PatientID = ? ", patientID).Scan(&count)

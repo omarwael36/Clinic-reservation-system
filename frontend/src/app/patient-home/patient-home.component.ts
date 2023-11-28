@@ -17,11 +17,9 @@ export class PatientHomeComponent implements OnInit {
   appointmentForm: FormGroup;
 
   constructor(private apiService: ApiService, private formBuilder: FormBuilder) {
-    // Initialize the form group in the constructor
     this.appointmentForm = this.formBuilder.group({
       newSlotDateTime: ['', Validators.required],
       newDoctorId: [0, Validators.required],
-      // Add other necessary form controls here
     });
   }
 
@@ -68,12 +66,10 @@ export class PatientHomeComponent implements OnInit {
     this.apiService.reserveSlot({ SlotID: slotId }).subscribe(
       (response: any) => {
         console.log(response);
-        // Reload appointments or update the UI as needed
         this.loadAppointments();
       },
       (error: any) => {
         console.error(error);
-        // Handle error or show an error message to the user
       }
     );
   }
@@ -82,12 +78,10 @@ export class PatientHomeComponent implements OnInit {
     this.apiService.cancelAppointment(slotId).subscribe(
       (response: any) => {
         console.log(response);
-        // Reload appointments or update the UI as needed
         this.loadAppointments();
       },
       (error: any) => {
         console.error(error);
-        // Handle error or show an error message to the user
       }
     );
   }
@@ -101,12 +95,10 @@ export class PatientHomeComponent implements OnInit {
     }).subscribe(
       (response: any) => {
         console.log(response);
-        // Reload appointments or update the UI as needed
         this.loadAppointments();
       },
       (error: any) => {
         console.error(error);
-        // Handle error or show an error message to the user
       }
     );
   }
@@ -114,13 +106,12 @@ export class PatientHomeComponent implements OnInit {
   showAllDoctors(): void {
   this.apiService.showAllDoctors().subscribe(
     (response: any) => {
-      console.log(response); // Log the API response
-      this.doctors = response.data; // Update to response.data
-      console.log('After API call:', this.doctors); // Confirm data in doctors array
+      console.log(response);
+      this.doctors = response.data;
+      console.log('After API call:', this.doctors);
     },
     (error: any) => {
       console.error(error);
-      // Handle error or show an error message to the user
     }
   );
 }
@@ -132,12 +123,11 @@ showSlotsForDoctor(): void {
   this.apiService.showDoctorSlots(this.doctorIdToShowSlots).subscribe(
     (response: any) => {
       console.log(response);
-      this.doctorSlots = response.data; // Assuming the data is in a property named 'data'
-      console.log('Doctor Slots:', this.doctorSlots); // Confirm data in doctorSlots array
+      this.doctorSlots = response.data;
+      console.log('Doctor Slots:', this.doctorSlots);
     },
     (error: any) => {
       console.error(error);
-      // Handle error or show an error message to the user
     }
   );
 }
@@ -148,13 +138,8 @@ showSlotsForDoctor(): void {
       const newSlotDateTime = this.appointmentForm.value.newSlotDateTime;
       const newDoctorId = this.appointmentForm.value.newDoctorId;
 
-      // Perform the create appointment logic here
-      // Use newSlotDateTime and newDoctorId
-
-      // After creating the appointment, you may want to reload appointments or update the UI as needed
-      // this.loadAppointments();
+      
     } else {
-      // Handle form validation errors if needed
     }
   }
 }

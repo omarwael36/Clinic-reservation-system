@@ -3,10 +3,10 @@ package model
 import "time"
 
 type Slot struct {
-	SlotID       int    `json:"slotId"`
-	SlotDateTime string `json:"slotDateTime"`
-	DoctorID     int    `json:"doctorId"`
-	PatientID    int    `json:"patientId"`
+	SlotID       int    `form:"slotId" json:"slotId"`
+	SlotDateTime string `form:"slotDateTime" json:"slotDateTime"`
+	DoctorID     int    `form:"doctorId" json:"doctorId"`
+	PatientID    int    `form:"patientId" json:"patientId"`
 }
 
 // Add a method to convert the string to time.Time

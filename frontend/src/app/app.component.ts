@@ -12,13 +12,11 @@ export class AppComponent implements OnInit {
   constructor(private apiService: ApiService) {}
 
   ngOnInit(): void {
-    // Example: Fetch data from Golang backend
-    this.apiService.doctorSignIn({ /* your data here */ }).subscribe((data: any) => {
+    this.apiService.doctorSignIn({ }).subscribe((data: any) => {
       console.log(data);
     });
   
-    // Example: Send data to Golang backend
-    const postData = { /* your data here */ };
+    const postData = {  };
     this.apiService.doctorSignUp(postData).subscribe((response: any) => {
       console.log(response);
     });

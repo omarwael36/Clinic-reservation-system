@@ -22,14 +22,13 @@ export class ApiService {
     return this.http.post(`${this.apiUrl}/api/DoctorSetSchedule`, data);
   }
 
-  // Patient-related Endpoints
 
   patientSignUp(data: any): Observable<any> {
     return this.http.post(`${this.apiUrl}/api/PatientSignUp`, data);
   }
 
   patientSignIn(data: any): Observable<any> {
-    return this.http.get(`${this.apiUrl}/api/PatientSignIn`, { params: data });
+    return this.http.post(`${this.apiUrl}/api/PatientSignIn`, { params: data });
   }
 
   showAllDoctors(): Observable<any> {

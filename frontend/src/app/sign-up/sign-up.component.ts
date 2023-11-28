@@ -1,42 +1,58 @@
 import { FormBuilder, FormGroup, Validators } from "@angular/forms";
 import { ApiService } from "../app.component";
 import { Component } from "@angular/core";
+import { Router } from "@angular/router";
 
 @Component({
-  selector: 'app-sign-up', // This selector is important
+  selector: 'app-sign-up',
   templateUrl: './sign-up.component.html',
   styleUrls: ['./sign-up.component.css']
 })
-
-
 export class SignUpComponent {
   signUpForm: FormGroup;
+  errorMessage: string = '';
 
-  constructor(private apiService: ApiService, private fb: FormBuilder) {
+  constructor(private apiService: ApiService, private fb: FormBuilder, private router: Router) {
     this.signUpForm = this.fb.group({
-      doctorName: ['', Validators.required],
-      doctorEmail: ['', [Validators.required, Validators.email]],
-      doctorPassword: ['', Validators.required],
+      userName: ['', Validators.required],
+      userEmail: ['', [Validators.required, Validators.email]],
+      userPassword: ['', Validators.required],
+      userType: ['Doctor', Validators.required]
     });
   }
 
   signUp(): void {
     if (this.signUpForm.invalid) {
-      // Handle form validation errors
       return;
     }
   
     const postData = this.signUpForm.value;
-  
-    this.apiService.doctorSignUp(postData).subscribe(
-      (response: any) => {
-        console.log(response);
-        // Handle success or show a message to the user
-      },
-      (error: any) => {
-        console.error(error);
-        // Handle error or show an error message to the user
-      }
-    );
+    const userType = postData.userType;
+
+    if (userType === 'Doctor') {
+      this.apiService.doctorSignUp(postData).subscribe(
+        (response: any) => {
+          console.log(response);
+          // Redirect to login page on success
+          this.router.navigate(['/']);
+        },
+        (error: any) => {
+          console.error(error);
+          this.errorMessage = error.error.error; // Assuming the error message structure
+        }
+      );
+    } else if (userType === 'Patient') {
+      this.apiService.patientSignUp(postData).subscribe(
+        (response: any) => {
+          console.log(response);
+          // Redirect to login page on success
+          this.router.navigate(['/']);
+        },
+        (error: any) => {
+          console.error(error);
+          this.errorMessage = error.error.error; // Assuming the error message structure
+        }
+      );
+    }
   }
 }

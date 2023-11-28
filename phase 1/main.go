@@ -21,9 +21,9 @@ func main() {
 	r.Use(cors.New(config))
 
 	r.POST("/api/DoctorSignUp", controller.DoctorSignUp)
-	r.GET("/api/DoctorSignIn", controller.DoctorSignIn)
+	r.POST("/api/DoctorSignIn", controller.DoctorSignIn)
 	r.POST("/api/PatientSignUp", controller.PatientSignUp)
-	r.GET("/api/PatientSignIn", controller.PatientSignIn)
+	r.POST("/api/PatientSignIn", controller.PatientSignIn)
 	r.POST("/api/DoctorSetSchedule", controller.SetSchedule)
 	r.GET("/api/PatientShowAllDoctors", controller.ShowAllDoctors)
 	r.GET("/api/PatientShowDoctorSlots", controller.ShowDoctorSlots)
@@ -31,7 +31,6 @@ func main() {
 	r.PUT("/api/PatientUpdateAppointment", controller.UpdateAppointment)
 	r.DELETE("/api/PatientCancelAppointment", controller.CancelAppointment)
 	r.GET("/api/PatientShowAppointments", controller.ShowAllReservations)
-
 	fmt.Println("connected to port 8080")
 	r.Run(":8080")
 	log.Fatal(http.ListenAndServe(":8080", r))

@@ -1,32 +1,39 @@
-<!-- sign-up.component.html -->
-<div class = "outer">
-    <div class="inner">
-        <h2>Sign Up</h2>
-        <form [formGroup]="signUpForm" (ngSubmit)="signUp()">
-            <div class="mb-3">
-              <label for="doctorName" class="form-label">Name:</label>
-              <input type="text" class="form-control" id="doctorName" formControlName="doctorName" required>
-            </div>
-            <div class="mb-3">
-              <label for="doctorEmail" class="form-label">Email:</label>
-              <input type="email" class="form-control" id="doctorEmail" formControlName="doctorEmail" required>
-            </div>
-            <div class="mb-3">
-              <label for="doctorPassword" class="form-label">Password:</label>
-              <input type="password" class="form-control" id="doctorPassword" formControlName="doctorPassword" required>
-            </div>
-            <div class="userType mb-3">
-                <label for="userType">User Type: </label> 
-                <input type="radio" class="ms-3" name="user" id="patient">
-                <label for="patient">Patient</label>
+<div class="outer">
+  <div class="inner">
+    <h2>Sign Up</h2>
+    <form [formGroup]="signUpForm" (ngSubmit)="signUp()">
+      <div class="mb-3">
+        <label for="userName" class="form-label">Name:</label>
+        <input type="text" class="form-control" id="userName" formControlName="userName" required>
+      </div>
+      <div class="mb-3">
+        <label for="userEmail" class="form-label">Email:</label>
+        <input type="email" class="form-control" id="userEmail" formControlName="userEmail" required>
+      </div>
+      <div class="mb-3">
+        <label for="userPassword" class="form-label">Password:</label>
+        <input type="password" class="form-control" id="userPassword" formControlName="userPassword" required>
+      </div>
+      <div class="userType mb-3">
+        <label>User Type:</label>
+        <div class="form-check">
+          <input type="radio" class="form-check-input" id="doctor" formControlName="userType" value="Doctor">
+          <label class="form-check-label" for="doctor">Doctor</label>
+        </div>
+        <div class="form-check">
+          <input type="radio" class="form-check-input" id="patient" formControlName="userType" value="Patient">
+          <label class="form-check-label" for="patient">Patient</label>
+        </div>
+      </div>
+      
+      <div *ngIf="errorMessage" class="error-message" [style.color]="'red'">
+        {{ errorMessage }}
+      </div>
 
-                <input type="radio" class="ms-3" name="user" id="doctor">
-                <label for="doctor">Doctor</label>
-            </div>
-            <div class="buttons">
-              <button type="submit" class="btn btn-primary">Sign Up</button>
-            </div>
-          </form>
-    </div>
+      <!-- Removed (click)="signUp()" from the button -->
+      <div class="buttons">
+        <button type="submit" class="btn btn-primary">Sign Up</button>
+      </div>
+    </form>
+  </div>
 </div>
-

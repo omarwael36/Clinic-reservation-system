@@ -1,11 +1,6 @@
 <div class="outer">
     <div class="inner">
-      <!-- Show slots for a specific doctor button -->
       
-  
-      <!-- Display doctor slots -->
-      
-      <!-- Display doctors -->
       <h3>Doctors:</h3>
       <table class="table mb-2 table-bordered w-25">
         <tr>
@@ -23,7 +18,6 @@
         </tr>
       </table>
   
-      <!-- Show all doctors button -->
       <button type="button" class="btn btn-primary" (click)="showAllDoctors()">Show All Doctors</button>
   
       <h3>Doctor Slots:</h3>
@@ -45,7 +39,6 @@
       <label for="doctorIdToShowSlots">Enter Doctor ID to Show Slots:</label>
       <input type="number" id="doctorIdToShowSlots" [(ngModel)]="doctorIdToShowSlots" class="form-control" required>
       <button type="button" class="btn btn-primary" (click)="showSlotsForDoctor()">Show Slots for Doctor</button>
-      <!-- Display appointments -->
       <h3>Appointments:</h3>
       <table class="table mb-2 table-bordered w-25">
         <tr>
@@ -65,7 +58,7 @@
       </table>
       <button type="button" class="btn btn-info" (click)="loadAppointments()">Show All Appointments</button>
   
-      <!-- Your new appointment creation UI -->
+      
       <h3>Create new appointment:</h3>
       <form [formGroup]="appointmentForm" (ngSubmit)="createAppointment()">
         <label for="newSlotDateTime">Slot Date and Time:</label>
@@ -73,7 +66,6 @@
   
         <label for="newDoctorId">Doctor ID:</label>
         <input type="number" id="newDoctorId" formControlName="newDoctorId" class="form-control" required>
-        <!-- Add other necessary input fields -->
   
         <button type="submit" class="btn btn-success">Create Appointment</button>
       </form>

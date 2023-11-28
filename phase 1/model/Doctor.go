@@ -2,7 +2,7 @@ package model
 
 type Doctor struct {
 	Id       int    `form:"DoctorId" json:"DoctorId"`
-	Name     string `form:"DoctorName" json:"DoctorName"`
-	Email    string `form:"DoctorEmail" json:"DoctorEmail"`
-	Password string `form:"DoctorPassword" json:"DoctorPassword"`
+	Name     string `form:"userName" json:"userName"`
+	Email    string `form:"userEmail" json:"userEmail"`
+	Password string `form:"userPassword" json:"userPassword"`
 }

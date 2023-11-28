@@ -59,7 +59,7 @@ func DoctorSignIn(c *gin.Context) {
 	db := config.DatabaseConnection()
 	defer db.Close()
 
-	if c.Request.Method != http.MethodGet {
+	if c.Request.Method != http.MethodPost {
 		c.AbortWithStatusJSON(http.StatusMethodNotAllowed, gin.H{"error": "Method not allowed"})
 		return
 	}
@@ -117,7 +117,11 @@ func SetSchedule(c *gin.Context) {
 		return
 	}
 
-	DoctorID, _ := helper.GetUserFromSession(c.Request)
+	doctorID, userType := helper.GetUserFromSession(c.Request)
+	if userType != "Doctor" {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return
+	}
 	slotDateTime, err := input.ParseSlotDateTime()
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Invalid date format"})
@@ -125,15 +129,15 @@ func SetSchedule(c *gin.Context) {
 		return
 	}
 
-	log.Printf("Retrieved DoctorID from session: %d", DoctorID)
+	log.Printf("Retrieved DoctorID from session: %d", doctorID)
 	var doctorCount int
-	db.QueryRow("SELECT COUNT(*) FROM doctor WHERE DoctorID = ?", DoctorID).Scan(&doctorCount)
+	db.QueryRow("SELECT COUNT(*) FROM doctor WHERE DoctorID = ?", doctorID).Scan(&doctorCount)
 	if doctorCount == 0 {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Doctor with provided DoctorID does not exist"})
 		return
 	}
 
-	_, err = db.Exec("INSERT INTO slot (SlotDateTime, DoctorID) VALUES (?, ?)", slotDateTime, DoctorID)
+	_, err = db.Exec("INSERT INTO slot (SlotDateTime, DoctorID) VALUES (?, ?)", slotDateTime, doctorID)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
 		log.Printf("Error inserting data into the database: %v", err)

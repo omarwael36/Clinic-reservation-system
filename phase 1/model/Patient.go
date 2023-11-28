@@ -1,8 +1,8 @@
 package model
 
 type Patient struct {
-	ID       int    `json:"patientId"`
-	Name     string `json:"patientName"`
-	Email    string `json:"patientEmail"`
-	Password string `json:"patientPassword"`
+	ID       int    `form:"patientId" json:"patientId"`
+	Name     string `form:"userName" json:"userName"`
+	Email    string `form:"userEmail" json:"userEmail"`
+	Password string `form:"userPassword" json:"userPassword"`
 }
