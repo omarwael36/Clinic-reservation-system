@@ -14,7 +14,7 @@ const (
 	host     = "localhost"
 	port     = 3306
 	user     = "root"
-	password = "Om@r30102001"
+	password = "Mohamed_2003bahaa"
 	dbName   = "clinic_reservation_system"
 )
 
