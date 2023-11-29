@@ -11,10 +11,10 @@ import (
 )
 
 const (
-	host     = "localhost"
+	host     = "databasecont"
 	port     = 3306
 	user     = "root"
-	password = "Mohamed_2003bahaa"
+	password = "12345678"
 	dbName   = "clinic_reservation_system"
 )
 
