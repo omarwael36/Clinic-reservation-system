@@ -52,8 +52,8 @@
           <td>{{ appointment.doctorId }}</td>
           <td>
             <!-- Remove the argument passed to updateAppointment -->
-            <button type="button" class="btn btn-primary" (click)="updateAppointment(appointment.SlotID)">Edit</button>
-            <button type="button" class="btn btn-danger" (click)="cancelAppointment(appointment.SlotID)">Cancel</button>
+            <button type="button" class="btn btn-primary" (click)="updateAppointment()">Edit</button>
+            <button type="button" class="btn btn-danger" (click)="cancelAppointment(appointment.slotId)">Cancel</button>
           </td>
         </tr>
         <tr *ngIf="!appointments || appointments.length === 0">
@@ -70,19 +70,14 @@
           <option *ngFor="let slot of doctorSlots" [value]="slot.slotId">{{ slot.slotDateTime }}</option>
         </select>
       </div>
-
       
-
-  
-      
+      <!-- Angular Template -->
       <h3>Create new appointment:</h3>
-      <form [formGroup]="appointmentForm" (ngSubmit)="createAppointment()">
-        <label for="newSlotDateTime">Slot Date and Time:</label>
-        <input type="datetime-local" id="newSlotDateTime" formControlName="newSlotDateTime" class="form-control" required>
-  
-        <label for="newDoctorId">Doctor ID:</label>
-        <input type="number" id="newDoctorId" formControlName="newDoctorId" class="form-control" required>
-  
+      <form [formGroup]="appointmentForm" (ngSubmit)="reserveSlot(appointmentForm.get('selectedSlot')?.value)">
+        <label for="doctorSlots">Select Slot:</label>
+        <select id="doctorSlots" formControlName="selectedSlot" class="form-control" required>
+          <option *ngFor="let slot of doctorSlots" [value]="slot?.slotId">{{ slot?.slotDateTime }}</option>
+        </select>
         <button type="submit" class="btn btn-success">Create Appointment</button>
       </form>
     </div>

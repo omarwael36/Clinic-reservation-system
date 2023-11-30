@@ -211,9 +211,6 @@ func ReserveSlot(c *gin.Context) {
 		log.Printf("Error binding form data: %v", err)
 		return
 	}
-
-	// Your validation logic for patient and slot existence
-
 	_, err = db.Exec("UPDATE slot SET PatientID = ? WHERE SlotID = ?", patientID, input.SlotID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})

@@ -17,13 +17,17 @@ export class PatientHomeComponent implements OnInit {
   doctorIdToShowSlots: number = 0;
   appointmentForm: FormGroup;
   newSlotId: number | undefined;
-slot: any;
+  slot: any;
+  isNewSlotIdInvalid(): boolean {
+    return this.newSlotId === undefined || isNaN(Number(this.newSlotId));
+  }
 
   
   constructor(private apiService: ApiService, private formBuilder: FormBuilder, private cdr: ChangeDetectorRef, private activatedRoute: ActivatedRoute) {
     this.appointmentForm = this.formBuilder.group({
       newSlotDateTime: ['', Validators.required],
       newDoctorId: [0, Validators.required],
+      selectedSlot: [0, Validators.required]
     });
   }
 
@@ -83,7 +87,9 @@ loadAppointments(patientID: string): void {
   showDoctorSlots(doctorId: number): void {
     this.apiService.showDoctorSlots(doctorId).subscribe(
       (response: any) => {
-        this.doctorSlots = response.Data;
+        console.log(response);
+        this.doctorSlots = response.data; // Ensure the correct data structure is assigned
+        console.log('Doctor Slots:', this.doctorSlots);
       },
       (error: any) => {
         console.error(error);
@@ -91,22 +97,36 @@ loadAppointments(patientID: string): void {
     );
   }
 
-  reserveSlot(patientID: string, slotId: number): void {
-    this.apiService.reserveSlot({ PatientID: patientID, SlotID: slotId }).subscribe(
-      (response: any) => {
-        console.log(response);
-        this.loadAppointments(patientID);
-      },
-      (error: any) => {
-        console.error(error);
-      }
-    );
-  }
+  reserveSlot(SlotID: number): void {
+    const patientID = this.retrievePatientID();
+
+    console.log(SlotID);
+    console.log(patientID);
+    
+    if (patientID !== null) {
+        if (SlotID !== null && SlotID !== undefined) {
+            const data = { slotId: +SlotID }; // Ensure SlotID is converted to a number
+            this.apiService.reserveSlot(patientID, data).subscribe(
+                (response: any) => {
+                    console.log(response);
+                },
+                (error: any) => {
+                    console.error(error);
+                }
+            );
+        } else {
+            console.error('SlotID is undefined');
+        }
+    } else {
+        console.error('PatientID is null');
+    }
+}
   
   cancelAppointment(slotId: number): void {
     const patientID = this.retrievePatientID();
-  
-    if (patientID) {
+    console.log(patientID)
+    console.log(slotId)
+    if (patientID && slotId) {
       this.apiService.cancelAppointment(patientID, slotId).subscribe(
         (response: any) => {
           console.log(response);
@@ -117,16 +137,17 @@ loadAppointments(patientID: string): void {
         }
       );
     } else {
-      console.error('PatientID not found');
+      console.error('PatientID or slotID not found');
     }
   }
   
   
-  updateAppointment(slotId: number) {
-    const selectedSlot = this.doctorSlots.find(slot => slot.slotId === slotId);
-    console.log("Selected Slot ID:", slotId);
+  
+  updateAppointment() {
+    const selectedSlot = this.doctorSlots.find(slot => slot.slotId === this.newSlotId);
+    console.log("Selected Slot ID:", this.newSlotId);
     console.log("Doctor Slots:", this.doctorSlots);
-    
+  
     if (selectedSlot) {
       const { slotId: newSlotId, doctorId } = selectedSlot;
       const patientID = this.retrievePatientID();
@@ -134,7 +155,7 @@ loadAppointments(patientID: string): void {
       if (patientID) {
         const data = {
           PatientID: patientID,
-          AppointmentID: slotId, // Use slotId from the function parameter
+          AppointmentID: this.newSlotId,
           NewSlotID: newSlotId,
           NewDoctorID: doctorId
         };
@@ -158,7 +179,6 @@ loadAppointments(patientID: string): void {
   
   
   
-  
 
   showAllDoctors(): void {
   this.apiService.showAllDoctors().subscribe(
@@ -173,9 +193,6 @@ loadAppointments(patientID: string): void {
   );
 }
 
-  
-  
-  
 showSlotsForDoctor(): void {
   this.apiService.showDoctorSlots(this.doctorIdToShowSlots).subscribe(
     (response: any) => {
@@ -188,15 +205,4 @@ showSlotsForDoctor(): void {
     }
   );
 }
-
-
-  createAppointment(): void {
-    if (this.appointmentForm.valid) {
-      const newSlotDateTime = this.appointmentForm.value.newSlotDateTime;
-      const newDoctorId = this.appointmentForm.value.newDoctorId;
-
-      
-    } else {
-    }
-  }
 }

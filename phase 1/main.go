@@ -39,7 +39,6 @@ func main() {
 	r.DELETE("/api/PatientCancelAppointment/:id", controller.CancelAppointment)
 	r.GET("/api/PatientShowAppointments/:id", controller.ShowAllReservations) 
 
-	// Start server
 	port := ":8080"
 	fmt.Println("Connected to port", port)
 	if err := http.ListenAndServe(port, r); err != nil {

@@ -28,3 +28,7 @@ a {
 .table td, .table th {
     padding: 10px;
 }
+
+.select-dropdown-option {
+    color: black; /* Set the font color to black */
+  }

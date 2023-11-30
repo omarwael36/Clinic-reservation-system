@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Observable, catchError, throwError } from 'rxjs';
-import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse, HttpHeaders, HttpParams } from '@angular/common/http';
 
 @Injectable({
   providedIn: 'root',
@@ -40,9 +40,12 @@ export class ApiService {
     return this.http.get(`${this.apiUrl}/api/PatientShowDoctorSlots`, { params: { DoctorID: doctorID.toString() } });
   }
 
-  reserveSlot(data: any): Observable<any> {
-    return this.http.put(`${this.apiUrl}/api/PatientReserveSlot`, data);
-  }
+  reserveSlot(patientID: string, data: any): Observable<any> {
+  
+    return this.http.put(`${this.apiUrl}/api/PatientReserveSlot/${patientID}`, data);
+}
+
+  
 
   updateAppointment(patientID: string, data: any) {
     return this.http.put(`${this.apiUrl}/api/PatientUpdateAppointment/${patientID}`, data)
@@ -52,8 +55,12 @@ export class ApiService {
   }
 
   cancelAppointment(patientID: string, slotID: number): Observable<any> {
-    return this.http.delete(`${this.apiUrl}/api/PatientCancelAppointment/${patientID}`, { params: {slotID: slotID.toString() } });
+    const url = `${this.apiUrl}/api/PatientCancelAppointment/${patientID}`;
+    const params = new HttpParams().set('slotId', slotID.toString());
+  
+    return this.http.delete(url, { params });
   }
+  
   
 
   showPatientAppointments(patientID: string): Observable<any> {
