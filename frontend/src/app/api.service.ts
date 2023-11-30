@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, catchError, throwError } from 'rxjs';
+import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
 
 @Injectable({
   providedIn: 'root',
@@ -9,6 +9,7 @@ export class ApiService {
   private apiUrl = 'http://localhost:8080';
 
   constructor(private http: HttpClient) {}
+  
 
   doctorSignIn(data: any): Observable<any> {
     return this.http.post(`${this.apiUrl}/api/DoctorSignIn`, data);
@@ -28,7 +29,7 @@ export class ApiService {
   }
 
   patientSignIn(data: any): Observable<any> {
-    return this.http.post(`${this.apiUrl}/api/PatientSignIn`, { params: data });
+    return this.http.post(`${this.apiUrl}/api/PatientSignIn`,  data);
   }
 
   showAllDoctors(): Observable<any> {
@@ -43,15 +44,33 @@ export class ApiService {
     return this.http.put(`${this.apiUrl}/api/PatientReserveSlot`, data);
   }
 
-  updateAppointment(data: any): Observable<any> {
-    return this.http.put(`${this.apiUrl}/api/PatientUpdateAppointment`, data);
+  updateAppointment(patientID: string, data: any) {
+    return this.http.put(`${this.apiUrl}/api/PatientUpdateAppointment/${patientID}`, data)
+      .pipe(
+        catchError(this.handleError)
+      );
   }
 
-  cancelAppointment(slotID: number): Observable<any> {
-    return this.http.delete(`${this.apiUrl}/api/PatientCancelAppointment`, { params: { slotId: slotID.toString() } });
+  cancelAppointment(patientID: string, slotID: number): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/api/PatientCancelAppointment/${patientID}`, { params: {slotID: slotID.toString() } });
+  }
+  
+
+  showPatientAppointments(patientID: string): Observable<any> {
+    return this.http.get(`${this.apiUrl}/api/PatientShowAppointments/${patientID}`);
   }
 
-  showAllReservations(): Observable<any> {
-    return this.http.get(`${this.apiUrl}/api/PatientShowAppointments`);
+  private handleError(error: HttpErrorResponse) {
+    let errorMessage = 'Unknown error occurred!';
+    if (error.error instanceof ErrorEvent) {
+      // Client-side error
+      errorMessage = `Error: ${error.error.message}`;
+    } else {
+      // Server-side error
+      errorMessage = `Error Code: ${error.status}\nMessage: ${error.message}`;
+    }
+    console.error(errorMessage);
+    return throwError(errorMessage);
   }
+  
 }

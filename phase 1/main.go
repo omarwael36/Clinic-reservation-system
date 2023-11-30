@@ -16,10 +16,17 @@ func main() {
 	config.DatabaseConnection()
 	r := gin.Default()
 
-	config := cors.DefaultConfig()
-	config.AllowOrigins = []string{"http://localhost:4200"} // Update with your Angular app's URL
-	r.Use(cors.New(config))
+	// CORS configuration
+	corsConfig := cors.DefaultConfig()
+	corsConfig.AllowOrigins = []string{"http://localhost:4200"} // Update with your Angular app's URL
+	corsConfig.AllowMethods = []string{"GET", "POST", "PUT", "DELETE"}
+	corsConfig.AllowHeaders = []string{"Origin", "Content-Length", "Content-Type", "Authorization"}
+	corsConfig.AllowCredentials = true
+	corsConfig.ExposeHeaders = []string{"Content-Length"}
 
+	r.Use(cors.New(corsConfig))
+
+	// Routes
 	r.POST("/api/DoctorSignUp", controller.DoctorSignUp)
 	r.POST("/api/DoctorSignIn", controller.DoctorSignIn)
 	r.POST("/api/PatientSignUp", controller.PatientSignUp)
@@ -27,11 +34,15 @@ func main() {
 	r.POST("/api/DoctorSetSchedule", controller.SetSchedule)
 	r.GET("/api/PatientShowAllDoctors", controller.ShowAllDoctors)
 	r.GET("/api/PatientShowDoctorSlots", controller.ShowDoctorSlots)
-	r.PUT("/api/PatientReserveSlot", controller.ReserveSlot)
-	r.PUT("/api/PatientUpdateAppointment", controller.UpdateAppointment)
-	r.DELETE("/api/PatientCancelAppointment", controller.CancelAppointment)
-	r.GET("/api/PatientShowAppointments", controller.ShowAllReservations)
-	fmt.Println("connected to port 8080")
-	r.Run(":8080")
-	log.Fatal(http.ListenAndServe(":8080", r))
+	r.PUT("/api/PatientReserveSlot/:id", controller.ReserveSlot)
+	r.PUT("/api/PatientUpdateAppointment/:id", controller.UpdateAppointment) 
+	r.DELETE("/api/PatientCancelAppointment/:id", controller.CancelAppointment)
+	r.GET("/api/PatientShowAppointments/:id", controller.ShowAllReservations) 
+
+	// Start server
+	port := ":8080"
+	fmt.Println("Connected to port", port)
+	if err := http.ListenAndServe(port, r); err != nil {
+		log.Fatal("Failed to start server: ", err)
+	}
 }

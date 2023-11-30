@@ -1,8 +1,7 @@
-// helper/session.go
-
 package helper
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 
@@ -11,16 +10,20 @@ import (
 
 var store = sessions.NewCookieStore([]byte("Om@r3010"))
 
+const sessionName = "Clinic-session"
+const userIDKey = "UserID"
+const userTypeKey = "userType"
+
 func StoreUserInSession(w http.ResponseWriter, r *http.Request, userID int, userType string) {
-	session, err := store.Get(r, "Clinic-session")
+	session, err := store.Get(r, sessionName)
 	if err != nil {
 		http.Error(w, "Error retrieving session", http.StatusInternalServerError)
 		log.Printf("Error retrieving session: %v", err)
 		return
 	}
 
-	session.Values["UserID"] = userID
-	session.Values["userType"] = userType
+	session.Values[userIDKey] = userID
+	session.Values[userTypeKey] = userType
 
 	err = session.Save(r, w)
 	if err != nil {
@@ -28,22 +31,33 @@ func StoreUserInSession(w http.ResponseWriter, r *http.Request, userID int, user
 		log.Printf("Error saving session: %v", err)
 		return
 	}
+	fmt.Println(sessionName)
+	fmt.Println(userIDKey)
+	fmt.Println(userID)
+	fmt.Println(userTypeKey)
+	fmt.Println(userType)
 }
 
-
 func GetUserFromSession(r *http.Request) (int, string) {
-	session, _ := store.Get(r, "Clinic-session")
-	userID, okUserID := session.Values["UserID"].(int)
-	userType, okUserType := session.Values["userType"].(string)
-	if !okUserID {
-		log.Println("UserID not found in session")
+	session, _ := store.Get(r, sessionName)
+
+	userID, ok := session.Values[userIDKey].(int)
+	fmt.Println(sessionName)
+	fmt.Println(userIDKey)
+	fmt.Println(userID)
+	fmt.Println(userTypeKey)
+	if !ok {
+		log.Println("UserID not found in session or of incorrect type")
 		return 0, ""
 	}
 
-	if !okUserType {
-		log.Println("UserType not found in session")
-		return userID, ""
+	userType, ok := session.Values[userTypeKey].(string)
+	fmt.Println(userType)
+	if !ok {
+		log.Println("UserType not found in session or of incorrect type")
+		return 0, ""
 	}
-
+	
 	return userID, userType
 }
+

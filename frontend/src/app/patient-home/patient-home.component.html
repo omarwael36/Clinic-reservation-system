@@ -39,6 +39,7 @@
       <label for="doctorIdToShowSlots">Enter Doctor ID to Show Slots:</label>
       <input type="number" id="doctorIdToShowSlots" [(ngModel)]="doctorIdToShowSlots" class="form-control" required>
       <button type="button" class="btn btn-primary" (click)="showSlotsForDoctor()">Show Slots for Doctor</button>
+
       <h3>Appointments:</h3>
       <table class="table mb-2 table-bordered w-25">
         <tr>
@@ -47,16 +48,31 @@
           <td>Actions</td>
         </tr>
         <tr *ngFor="let appointment of appointments">
-          <td>{{ appointment?.SlotDateTime }}</td>
-          <td>{{ appointment?.DoctorID }}</td>
-          
+          <td>{{ appointment.slotDateTime }}</td>
+          <td>{{ appointment.doctorId }}</td>
           <td>
-            <button type="button" class="btn btn-primary" (click)="updateAppointment(appointment.SlotID, appointment.DoctorID, appointment.NewSlotID, appointment.NewDoctorID)">Edit</button>
+            <!-- Remove the argument passed to updateAppointment -->
+            <button type="button" class="btn btn-primary" (click)="updateAppointment(appointment.SlotID)">Edit</button>
             <button type="button" class="btn btn-danger" (click)="cancelAppointment(appointment.SlotID)">Cancel</button>
           </td>
         </tr>
+        <tr *ngIf="!appointments || appointments.length === 0">
+          <td colspan="3">No appointments available</td>
+        </tr>
       </table>
-      <button type="button" class="btn btn-info" (click)="loadAppointments()">Show All Appointments</button>
+      <button type="button" class="btn btn-info" (click)="showReservations()">Show Reservations</button>
+
+      <!-- Dropdown menu for doctor's available slots -->
+      <div *ngIf="doctorSlots && doctorSlots.length > 0">
+        <label for="doctorSlots">Select Slot:</label>
+        <!-- Ensure [(ngModel)] is correctly assigned to newSlotId -->
+        <select id="doctorSlots" class="form-control" [(ngModel)]="newSlotId">
+          <option *ngFor="let slot of doctorSlots" [value]="slot.slotId">{{ slot.slotDateTime }}</option>
+        </select>
+      </div>
+
+      
+
   
       
       <h3>Create new appointment:</h3>

@@ -2,7 +2,7 @@ package controller
 
 import (
 	"Clinic-Reservation-System/config"
-	"Clinic-Reservation-System/helper"
+	//"Clinic-Reservation-System/helper"
 	"Clinic-Reservation-System/model"
 	"log"
 	"net/http"
@@ -12,6 +12,7 @@ import (
 )
 
 func PatientSignUp(c *gin.Context) {
+
 	var response model.Response
 	db := config.DatabaseConnection()
 	defer db.Close()
@@ -66,17 +67,16 @@ func PatientSignIn(c *gin.Context) {
 	}
 
 	var input model.Patient
+
 	if err := c.ShouldBind(&input); err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Bad request"})
 		log.Printf("Error binding form data: %v", err)
 		return
 	}
-
 	if input.Email == "" || input.Password == "" {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "All fields are required"})
 		return
 	}
-
 	var count int
 	db.QueryRow("SELECT COUNT(*) FROM patient WHERE patientEmail = ?", input.Email).Scan(&count)
 	if count == 0 {
@@ -85,8 +85,8 @@ func PatientSignIn(c *gin.Context) {
 	}
 
 	var storedPassword string
-	var PatientID int
-	err := db.QueryRow("SELECT patientPassword, PatientID FROM patient WHERE patientEmail = ?", input.Email).Scan(&storedPassword, &PatientID)
+	var patientID int
+	err := db.QueryRow("SELECT patientPassword, PatientID FROM patient WHERE patientEmail = ?", input.Email).Scan(&storedPassword, &patientID)
 
 	if err != nil || input.Password != storedPassword {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Invalid Credentials"})
@@ -96,9 +96,10 @@ func PatientSignIn(c *gin.Context) {
 
 	response.Status = http.StatusOK
 	response.Message = "Sign-in is done successfully!"
+	response.Data = map[string]interface{}{"PatientID": patientID} // Include PatientID in Data field
 	log.Print("Sign-in is done successfully!")
-	helper.StoreUserInSession(c.Writer, c.Request, PatientID, "Patient")
 	c.JSON(http.StatusOK, response)
+
 }
 
 func ShowAllDoctors(c *gin.Context) {
@@ -197,32 +198,23 @@ func ReserveSlot(c *gin.Context) {
 		return
 	}
 
+	patientIDStr := c.Param("id") // Fetch the patient ID from the URL parameter
+	patientID, err := strconv.Atoi(patientIDStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid Patient ID"})
+		return
+	}
+
 	var input model.ReserveSlotRequest
 	if err := c.ShouldBindJSON(&input); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Bad request"})
 		log.Printf("Error binding form data: %v", err)
 		return
 	}
-	patientID, userType := helper.GetUserFromSession(c.Request)
-	if userType != "Patient" {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
-		return
-	}
-	var slotCount int
-	db.QueryRow("SELECT COUNT(*) FROM slot WHERE SlotID = ?", input.SlotID).Scan(&slotCount)
-	if slotCount == 0 {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Slot with provided SlotID does not exist"})
-		return
-	}
 
-	var patientCount int
-	db.QueryRow("SELECT COUNT(*) FROM patient WHERE PatientID = ?", patientID).Scan(&patientCount)
-	if patientCount == 0 {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Patient with provided PatientID does not exist"})
-		return
-	}
+	// Your validation logic for patient and slot existence
 
-	_, err := db.Exec("UPDATE slot SET PatientID = ? WHERE SlotID = ?", patientID, input.SlotID)
+	_, err = db.Exec("UPDATE slot SET PatientID = ? WHERE SlotID = ?", patientID, input.SlotID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
 		log.Printf("Error updating slot in the database: %v", err)
@@ -253,33 +245,16 @@ func UpdateAppointment(c *gin.Context) {
 		return
 	}
 
-	patientID, userType := helper.GetUserFromSession(c.Request)
-	if userType != "Patient" {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
-		return
-	}
-	var appointmentCount int
-	db.QueryRow("SELECT COUNT(*) FROM slot WHERE SlotID = ?", input.AppointmentID).Scan(&appointmentCount)
-	if appointmentCount == 0 {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Appointment with provided AppointmentID does not exist"})
+	patientIDStr := c.Param("id") // Fetch the patient ID from the URL parameter
+	patientID, err := strconv.Atoi(patientIDStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid Patient ID"})
 		return
 	}
 
-	var slotCount int
-	db.QueryRow("SELECT COUNT(*) FROM slot WHERE SlotID = ? AND DoctorID = ?", input.NewSlotID, input.NewDoctorID).Scan(&slotCount)
-	if slotCount == 0 {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Slot with provided NewSlotID and NewDoctorID does not exist"})
-		return
-	}
+	// Your existing validation logic...
 
-	var patientCount int
-	db.QueryRow("SELECT COUNT(*) FROM patient WHERE PatientID = ?", patientID).Scan(&patientCount)
-	if patientCount == 0 {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Patient with provided NewPatientID does not exist"})
-		return
-	}
-
-	_, err := db.Exec("UPDATE slot SET PatientID = NULL WHERE SlotID = ?", input.AppointmentID)
+	_, err = db.Exec("UPDATE slot SET PatientID = NULL WHERE SlotID = ?", input.AppointmentID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
 		log.Printf("Error updating appointment in the database: %v", err)
@@ -310,9 +285,10 @@ func CancelAppointment(c *gin.Context) {
 		return
 	}
 
-	patientID, userType := helper.GetUserFromSession(c.Request)
-	if userType != "Patient" {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+	patientIDStr := c.Param("id") // Fetch the patient ID from the URL parameter
+	patientID, err := strconv.Atoi(patientIDStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid Patient ID"})
 		return
 	}
 
@@ -363,9 +339,10 @@ func ShowAllReservations(c *gin.Context) {
 		return
 	}
 
-	patientID, userType := helper.GetUserFromSession(c.Request)
-	if userType != "Patient" {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+	patientIDStr := c.Param("id") // Fetch the patient ID from the URL parameter
+	patientID, err := strconv.Atoi(patientIDStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid Patient ID"})
 		return
 	}
 

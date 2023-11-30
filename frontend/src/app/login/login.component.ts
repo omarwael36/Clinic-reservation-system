@@ -10,7 +10,7 @@ import { Router } from '@angular/router';
 })
 export class LoginComponent implements OnInit {
   signInForm!: FormGroup;
-  userType: string = 'Doctor';
+  userType: string = '';
   errorMessage: string = '';
 
   constructor(private apiService: ApiService, private formBuilder: FormBuilder, private router: Router) {}
@@ -44,14 +44,24 @@ export class LoginComponent implements OnInit {
       this.apiService.patientSignIn(postData).subscribe(
         (response: any) => {
           console.log('Patient Login:', response);
-          this.router.navigate(['/UserPatient']);
+          if (response && response.status === 200 && response.data && response.data.PatientID) {
+            console.log('PatientID:', response.data.PatientID);
+            // Redirect to the PatientHomeComponent with PatientID in the URL
+            this.router.navigate(['/UserPatient', response.data.PatientID]);
+          } else {
+            console.error('Invalid response structure or missing PatientID');
+            // Handle the case when PatientID is missing or the response structure is invalid
+            // For example, redirect to a generic error page or display an error message to the user
+          }
         },
         (error: any) => {
           console.error('Patient Login Error:', error);
           this.errorMessage = error.error.error;
+          // Handle error scenario, such as displaying an error message to the user
         }
       );
     }
+    
   }
 
   setUserType(userType: string): void {

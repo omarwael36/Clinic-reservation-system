@@ -10,6 +10,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+
 func DoctorSignUp(c *gin.Context) {
 	var response model.Response
 	db := config.DatabaseConnection()
