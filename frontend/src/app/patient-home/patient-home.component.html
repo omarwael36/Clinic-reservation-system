@@ -62,15 +62,6 @@
       </table>
       <button type="button" class="btn btn-info" (click)="showReservations()">Show Reservations</button>
 
-      <!-- Dropdown menu for doctor's available slots -->
-      <div *ngIf="doctorSlots && doctorSlots.length > 0">
-        <label for="doctorSlots">Select Slot:</label>
-        <!-- Ensure [(ngModel)] is correctly assigned to newSlotId -->
-        <select id="doctorSlots" class="form-control" [(ngModel)]="newSlotId">
-          <option *ngFor="let slot of doctorSlots" [value]="slot.slotId">{{ slot.slotDateTime }}</option>
-        </select>
-      </div>
-      
       <!-- Angular Template -->
       <h3>Create new appointment:</h3>
       <form [formGroup]="appointmentForm" (ngSubmit)="reserveSlot(appointmentForm.get('selectedSlot')?.value)">
