@@ -1,38 +1,30 @@
 <div class="outer">
     <div class="inner">
-        <h1>Hello, Doctor</h1>
-        <h3>My slots: </h3>
-        <table class="table table-bordered w-25">
-            <tr>
-                <td>Date</td>
-                <td>Hour</td>
-                <td>Edit slot</td>
-                <td>Cancel slot</td>
-            </tr>
-            <tr>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-            </tr>
-            <tr>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-            </tr>
-        </table>
-        <h3>Create new slot;</h3>
+        <h3>Doctor Slots:</h3>
         <table class="table mb-2 table-bordered w-25">
             <tr>
-                <td>Date</td>
-                <td>lorem</td>
+            <td>Slot ID</td>
+            <td>Slot DateTime</td>
+            <td>Doctor ID</td>
             </tr>
-            <tr>
-                <td>Hour</td>
-                <td>lorem</td>
+            <tr *ngFor="let slot of doctorSlots; let i = index">
+            <td>{{ slot?.slotId }}</td>
+            <td>{{ slot?.slotDateTime }}</td>
+            <td>{{ slot?.doctorId }}</td>
+            </tr>
+            <tr *ngIf="doctorSlots.length === 0">
+            <td colspan="3">No doctor slots available</td>
             </tr>
         </table>
-        <button type="button" class="btn btn-primary">Add slot</button>
+        <button type="button" class="btn btn-primary" (click)="showDoctorSlots()">Show Slots for Doctor</button>
+        <h3>Create new slot;</h3>
+        <form [formGroup]="slotForm" (ngSubmit)="onSubmit()">
+            <div class="form-group">
+                <label for="dateTime">Date & Time</label>
+                <input type="datetime-local" id="dateTime" formControlName="dateTime" class="form-control" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Add Slot</button>
+        </form>
+
     </div>
 </div>

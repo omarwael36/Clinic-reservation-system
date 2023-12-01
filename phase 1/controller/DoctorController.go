@@ -2,10 +2,12 @@ package controller
 
 import (
 	"Clinic-Reservation-System/config"
-	"Clinic-Reservation-System/helper"
+	"time"
+	//"Clinic-Reservation-System/helper"
 	"Clinic-Reservation-System/model"
 	"log"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
@@ -97,7 +99,7 @@ func DoctorSignIn(c *gin.Context) {
 	response.Status = http.StatusOK
 	response.Message = "Sign-in is done successfully!"
 	log.Print("Sign-in is done successfully!")
-	helper.StoreUserInSession(c.Writer, c.Request, DoctorID, "Doctor")
+	response.Data = map[string]interface{}{"DoctorID": DoctorID} // Include PatientID in Data field
 	c.JSON(http.StatusOK, response)
 }
 
@@ -118,27 +120,40 @@ func SetSchedule(c *gin.Context) {
 		return
 	}
 
-	doctorID, userType := helper.GetUserFromSession(c.Request)
-	if userType != "Doctor" {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
-		return
-	}
-	slotDateTime, err := input.ParseSlotDateTime()
+	DoctorIDStr := c.Param("id")
+	doctorID, err := strconv.Atoi(DoctorIDStr)
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Invalid date format"})
-		log.Printf("Error parsing slotDateTime: %v", err)
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid Doctor ID"})
 		return
 	}
 
+	slotDateTime := input.SlotDateTime // Assuming it's a string from the frontend
+
 	log.Printf("Retrieved DoctorID from session: %d", doctorID)
+
 	var doctorCount int
-	db.QueryRow("SELECT COUNT(*) FROM doctor WHERE DoctorID = ?", doctorID).Scan(&doctorCount)
+	if err := db.QueryRow("SELECT COUNT(*) FROM doctor WHERE DoctorID = ?", doctorID).Scan(&doctorCount); err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
+		log.Printf("Error querying doctor count: %v", err)
+		return
+	}
 	if doctorCount == 0 {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Doctor with provided DoctorID does not exist"})
 		return
 	}
 
-	_, err = db.Exec("INSERT INTO slot (SlotDateTime, DoctorID) VALUES (?, ?)", slotDateTime, doctorID)
+	// Parse the frontend's datetime string into a time.Time object
+	slotTime, err := time.Parse(time.RFC3339, slotDateTime)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Invalid datetime format"})
+		log.Printf("Error parsing datetime: %v", err)
+		return
+	}
+
+	// Format the time.Time object to the required MySQL datetime format
+	formattedSlotDateTime := slotTime.Format("2006-01-02 15:04:05")
+
+	_, err = db.Exec("INSERT INTO slot (SlotDateTime, DoctorID) VALUES (?, ?)", formattedSlotDateTime, doctorID)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
 		log.Printf("Error inserting data into the database: %v", err)

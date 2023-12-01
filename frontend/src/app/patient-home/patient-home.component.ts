@@ -121,7 +121,8 @@ loadAppointments(patientID: string): void {
         console.error('PatientID is null');
     }
 }
-  
+
+
   cancelAppointment(slotId: number): void {
     const patientID = this.retrievePatientID();
     console.log(patientID)
@@ -130,7 +131,7 @@ loadAppointments(patientID: string): void {
       this.apiService.cancelAppointment(patientID, slotId).subscribe(
         (response: any) => {
           console.log(response);
-          this.loadAppointments(patientID); // Load appointments if patientID is available
+          this.loadAppointments(patientID);
         },
         (error: any) => {
           console.error(error);
@@ -141,13 +142,11 @@ loadAppointments(patientID: string): void {
     }
   }
   
-  
-  
   updateAppointment() {
     const selectedSlot = this.doctorSlots.find(slot => slot.slotId === this.newSlotId);
     console.log("Selected Slot ID:", this.newSlotId);
     console.log("Doctor Slots:", this.doctorSlots);
-  
+    
     if (selectedSlot) {
       const { slotId: newSlotId, doctorId } = selectedSlot;
       const patientID = this.retrievePatientID();

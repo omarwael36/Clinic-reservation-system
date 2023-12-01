@@ -19,9 +19,7 @@ export class ApiService {
     return this.http.post(`${this.apiUrl}/api/DoctorSignUp`, data);
   }
 
-  setDoctorSchedule(data: any): Observable<any> {
-    return this.http.post(`${this.apiUrl}/api/DoctorSetSchedule`, data);
-  }
+  
 
 
   patientSignUp(data: any): Observable<any> {
@@ -53,6 +51,16 @@ export class ApiService {
         catchError(this.handleError)
       );
   }
+  setDoctorSchedule(doctorID: string, slotDateTime: string): Observable<any> {
+    const url = `${this.apiUrl}/api/DoctorSetSchedule/${doctorID}`;
+  
+    const requestBody = { slotDateTime };
+  
+    const headers = new HttpHeaders().set('Content-Type', 'application/json');
+  
+    return this.http.post(url, requestBody, { headers });
+  }
+  
 
   cancelAppointment(patientID: string, slotID: number): Observable<any> {
     const url = `${this.apiUrl}/api/PatientCancelAppointment/${patientID}`;

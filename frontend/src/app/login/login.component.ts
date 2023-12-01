@@ -33,7 +33,15 @@ export class LoginComponent implements OnInit {
       this.apiService.doctorSignIn(postData).subscribe(
         (response: any) => {
           console.log('Doctor Login:', response);
-          this.router.navigate(['/UserDoctor']);
+          if (response && response.status === 200 && response.data && response.data.DoctorID) {
+            console.log('PatientID:', response.data.DoctorID);
+            // Redirect to the PatientHomeComponent with PatientID in the URL
+            this.router.navigate(['/UserDoctor', response.data.DoctorID]);
+          } else {
+            console.error('Invalid response structure or missing DoctorID');
+            // Handle the case when PatientID is missing or the response structure is invalid
+            // For example, redirect to a generic error page or display an error message to the user
+          }
         },
         (error: any) => {
           console.error('Doctor Login Error:', error);

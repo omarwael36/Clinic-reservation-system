@@ -31,7 +31,7 @@ func main() {
 	r.POST("/api/DoctorSignIn", controller.DoctorSignIn)
 	r.POST("/api/PatientSignUp", controller.PatientSignUp)
 	r.POST("/api/PatientSignIn", controller.PatientSignIn)
-	r.POST("/api/DoctorSetSchedule", controller.SetSchedule)
+	r.POST("/api/DoctorSetSchedule/:id", controller.SetSchedule)
 	r.GET("/api/PatientShowAllDoctors", controller.ShowAllDoctors)
 	r.GET("/api/PatientShowDoctorSlots", controller.ShowDoctorSlots)
 	r.PUT("/api/PatientReserveSlot/:id", controller.ReserveSlot)
