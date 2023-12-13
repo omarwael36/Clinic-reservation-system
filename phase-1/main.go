@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -35,13 +36,17 @@ func main() {
 	r.GET("/api/PatientShowAllDoctors", controller.ShowAllDoctors)
 	r.GET("/api/PatientShowDoctorSlots", controller.ShowDoctorSlots)
 	r.PUT("/api/PatientReserveSlot/:id", controller.ReserveSlot)
-	r.PUT("/api/PatientUpdateAppointment/:id", controller.UpdateAppointment) 
+	r.PUT("/api/PatientUpdateAppointment/:id", controller.UpdateAppointment)
 	r.DELETE("/api/PatientCancelAppointment/:id", controller.CancelAppointment)
-	r.GET("/api/PatientShowAppointments/:id", controller.ShowAllReservations) 
+	r.GET("/api/PatientShowAppointments/:id", controller.ShowAllReservations)
 
-	port := ":8080"
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+
 	fmt.Println("Connected to port", port)
-	if err := http.ListenAndServe(port, r); err != nil {
+	if err := http.ListenAndServe(":"+port, r); err != nil {
 		log.Fatal("Failed to start server: ", err)
 	}
 }
