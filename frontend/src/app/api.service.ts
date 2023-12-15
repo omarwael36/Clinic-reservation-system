@@ -1,18 +1,19 @@
 import { HttpClient, HttpErrorResponse, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable, catchError, throwError } from 'rxjs';
-import { environment } from 'src/environments/environment';
-
+import { environment } from '../environments/environment';
 @Injectable({
   providedIn: 'root',
 })
 export class ApiService {
-  private apiUrl = environment.apiUrl;
+  private apiUrl = environment.apiUrl ;
 
   constructor(private http: HttpClient) {}
   
 
   doctorSignIn(data: any): Observable<any> {
+    console.log("hello worlddd");
+    console.log(this.apiUrl);
     return this.http.post(`${this.apiUrl}/api/DoctorSignIn`, data);
   }
 
