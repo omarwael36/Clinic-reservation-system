@@ -9,15 +9,19 @@ RUN npm install
 COPY . /app/
 RUN npm run build --prod
 
-FROM nginxinc/nginx-unprivileged:alpine3.18-perl
+FROM nginxinc/nginx-unprivileged:1.21.4-alpine
 
 # Set permissions for Nginx user
 USER root
 RUN chown -R nginx:nginx /usr/share/nginx/html
 RUN chmod -R 777 /usr/share/nginx/html
 
-# Allow the non-root user to bind to privileged ports
+# Add 'cap_net_bind_service' capability to the Nginx binary
+RUN apk add --no-cache libcap
 RUN setcap 'cap_net_bind_service=+ep' /usr/sbin/nginx
+
+# Remove unnecessary packages
+RUN apk del libcap
 
 # Copy Nginx configuration
 COPY nginx.conf /etc/nginx/nginx.conf
