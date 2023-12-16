@@ -29,7 +29,7 @@ COPY nginx.conf /etc/nginx/nginx.conf
 # Copy built frontend files
 COPY --from=build /app/dist/frontend /usr/share/nginx/html
 
-EXPOSE 80
+EXPOSE 8080
 
 # Set the environment variable for API URL
 CMD ["sh", "-c", "sed -i 's|API_URL_PLACEHOLDER|$API_URL|' /usr/share/nginx/html/main*.js && nginx -g 'daemon off;'"]
