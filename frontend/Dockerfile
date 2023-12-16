@@ -12,6 +12,7 @@ RUN npm run build --prod
 FROM nginx:alpine
 RUN mkdir -p /var/cache/nginx/client_temp
 RUN chown -R nginx:nginx /var/cache/nginx
+RUN chmod 777 /usr/share/nginx/html
 
 # Copy Nginx configuration
 COPY nginx.conf /etc/nginx/nginx.conf
