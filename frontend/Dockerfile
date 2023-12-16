@@ -9,8 +9,8 @@ RUN npm install
 COPY . /app/
 RUN npm run build --prod
 
-FROM nginx:alpine
-USER root
+FROM nginx:nginxinc/nginx-unprivileged:alpine3.18-perl
+
 # Set permissions for Nginx user
 RUN chown -R nginx:nginx /usr/share/nginx/html
 RUN chmod -R 777 /usr/share/nginx/html
