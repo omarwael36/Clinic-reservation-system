@@ -11,6 +11,7 @@ RUN npm run build --prod
 
 FROM nginxinc/nginx-unprivileged:alpine3.18-perl
 # Set permissions for Nginx user
+USER root
 RUN chown -R nginx:nginx /usr/share/nginx/html
 RUN chmod -R 777 /usr/share/nginx/html
 
