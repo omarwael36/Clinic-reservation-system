@@ -11,11 +11,11 @@ RUN npm run build --prod
 
 FROM nginxinc/nginx-unprivileged:1.21.4-alpine
 
-# Update Nginx configuration to listen on port 8080 instead of port 80
-RUN sed -i 's/80;/8080;/g' /etc/nginx/conf.d/default.conf
+USER root
 
 # Set permissions for Nginx user
-RUN chown -R nginx:nginx /var/cache/nginx /var/run/nginx
+RUN chown -R nginx:nginx /usr/share/nginx/html
+RUN chmod -R 777 /usr/share/nginx/html
 
 # Copy Nginx configuration
 COPY nginx.conf /etc/nginx/nginx.conf
@@ -23,7 +23,7 @@ COPY nginx.conf /etc/nginx/nginx.conf
 # Copy built frontend files
 COPY --from=build /app/dist/frontend /usr/share/nginx/html
 
-EXPOSE 8080
+EXPOSE 80
 
 # Set the environment variable for API URL
-CMD ["sh", "-c", "sed -i 's|API_URL_PLACEHOLDER|$API_URL|' /usr/share/nginx/html/main*.js && exec nginx -g 'daemon off;'"]
+CMD ["sh", "-c", "sed -i 's|API_URL_PLACEHOLDER|$API_URL|' /usr/share/nginx/html/main*.js && nginx -g 'daemon off;'"]
