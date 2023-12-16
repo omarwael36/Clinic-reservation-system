@@ -10,11 +10,14 @@ COPY . /app/
 RUN npm run build --prod
 
 FROM nginx:alpine
-COPY nginx.conf /etc/nginx/nginx.conf
-COPY --from=build /app/dist/frontend /usr/share/nginx/html
+RUN mkdir -p /var/cache/nginx/client_temp
+RUN chown -R nginx:nginx /var/cache/nginx
 
-# Set permissions for /usr/share/nginx/html
-RUN chmod 777 /usr/share/nginx/html
+# Copy Nginx configuration
+COPY nginx.conf /etc/nginx/nginx.conf
+
+# Copy built frontend files
+COPY --from=build /app/dist/frontend /usr/share/nginx/html
 
 EXPOSE 80
 
