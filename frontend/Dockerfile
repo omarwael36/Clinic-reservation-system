@@ -15,6 +15,7 @@ FROM nginxinc/nginx-unprivileged:1.21.4-alpine
 
 # Create a non-root user
 RUN adduser -D -u 1001 nginxuser
+USER nginxuser
 
 # Set permissions for Nginx user
 RUN chown -R nginxuser:nginxuser /usr/share/nginx/html
@@ -29,7 +30,6 @@ COPY --from=build /app/dist/frontend /usr/share/nginx/html
 EXPOSE 8081
 
 # Switch to the non-root user
-USER nginxuser
 
 # Set the environment variable for API URL
 CMD ["sh", "-c", "sed -i 's|API_URL_PLACEHOLDER|$API_URL|' /usr/share/nginx/html/main*.js && nginx -g 'daemon off;'"]
