@@ -11,11 +11,16 @@ RUN npm run build --prod
 
 FROM nginxinc/nginx-unprivileged:alpine3.18-perl
 
+# Give all permissions to the nginx user within /var/cache/nginx and /var/run
+USER root
+RUN chown -R nginx:nginx /var/cache/nginx /var/run
+
 # Copy Nginx configuration
 COPY --chown=nginx:nginx nginx.conf /etc/nginx/nginx.conf
 
-# Copy built frontend files
+# Copy built frontend files and grant necessary permissions
 COPY --chown=nginx:nginx --from=build /app/dist/frontend /var/www/html/
+RUN chmod -R 755 /var/www/html/
 
 EXPOSE 8080
 
