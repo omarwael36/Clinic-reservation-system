@@ -12,7 +12,11 @@ RUN npm run build --prod
 FROM nginxinc/nginx-unprivileged:alpine3.18-perl
 
 # Create the target directory with the correct ownership
-RUN mkdir -p /var/www/html && chown -R nginx:nginx /var/www/html
+USER root
+RUN mkdir -p /var/www/html && chown -R nginx:nginx /var/www
+
+# Switch back to non-root user
+USER nginx
 
 # Copy Nginx configuration
 COPY --chown=nginx:nginx nginx.conf /etc/nginx/nginx.conf
