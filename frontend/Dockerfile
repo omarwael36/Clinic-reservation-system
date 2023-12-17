@@ -11,7 +11,7 @@ RUN npm run build --prod
 
 FROM nginxinc/nginx-unprivileged:alpine3.18-perl
 
-# Give all permissions to the nginx user within /var/cache/nginx and /var/run
+# Give all necessary permissions to the nginx user
 USER root
 RUN chown -R nginx:nginx /var/cache/nginx /var/run
 
@@ -25,4 +25,4 @@ RUN chmod -R 755 /var/www/html/
 EXPOSE 8080
 
 # Set the environment variable for API URL
-CMD ["sh", "-c", "sed -i 's|API_URL_PLACEHOLDER|$API_URL|' /var/www/html/main*.js && nginx -g 'daemon off;'"]
+CMD ["sh", "-c", "sed -i 's|API_URL_PLACEHOLDER|$API_URL|' /var/www/html/main*.jsT && nginx -g 'daemon off;'"]
