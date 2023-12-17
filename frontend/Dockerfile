@@ -11,10 +11,6 @@ RUN npm run build --prod
 
 FROM nginxinc/nginx-unprivileged:alpine3.18-perl
 
-
-RUN chown -R nginx:nginx /usr/share/nginx/html
-RUN chmod -R 777 /usr/share/nginx/html
-
 # Copy Nginx configuration
 COPY nginx.conf /etc/nginx/nginx.conf
 
