@@ -20,4 +20,4 @@ COPY --chown=nginx:nginx --from=build /app/dist/frontend /var/www/html/
 EXPOSE 8080
 
 # Set the environment variable for API URL
-CMD ["sh", "-c", "sed -i 's|API_URL_PLACEHOLDER|$API_URL|' /usr/share/nginx/html/main*.js && nginx -g 'daemon off;'"]
+CMD ["sh", "-c", "sed -i 's|API_URL_PLACEHOLDER|$API_URL|' /var/www/html/main*.js && nginx -g 'daemon off;'"]
