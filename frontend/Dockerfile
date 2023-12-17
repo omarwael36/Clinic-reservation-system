@@ -12,10 +12,10 @@ RUN npm run build --prod
 FROM nginxinc/nginx-unprivileged:alpine3.18-perl
 
 # Copy Nginx configuration
-COPY nginx.conf /etc/nginx/nginx.conf
+COPY --chown=nginx:nginx nginx.conf /etc/nginx/nginx.conf
 
 # Copy built frontend files
-COPY --from=build /app/dist/frontend /usr/share/nginx/html
+COPY --chown=nginx:nginx --from=build /app/dist/frontend /usr/share/nginx/html
 
 EXPOSE 8081
 
