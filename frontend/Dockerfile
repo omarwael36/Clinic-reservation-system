@@ -13,10 +13,14 @@ FROM nginx:alpine
 COPY nginx.conf /etc/nginx/nginx.conf
 COPY --from=build /app/dist/frontend /usr/share/nginx/html
 
-# Change permissions
-USER root
+# Set proper permissions
 RUN chmod -R 755 /usr/share/nginx/html
 
-# Expose and set CMD as you had it
+# Expose port
 EXPOSE 80
-CMD ["sh", "-c", "sed -i 's|API_URL_PLACEHOLDER|$API_URL|' /usr/share/nginx/html/main*.js && nginx -g 'daemon off;'"]
+
+# Copy startup script
+COPY start.sh /start.sh
+RUN chmod +x /start.sh
+
+CMD ["/start.sh"]
