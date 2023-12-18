@@ -29,4 +29,4 @@ EXPOSE 80
 USER nginx
 
 # Set the environment variable for API URL and start NGINX
-CMD ["sh", "-c", "sed -i 's|API_URL_PLACEHOLDER|$API_URL|' /usr/share/nginx/html/main*.js && exec nginx -g 'daemon off;'"]
+CMD sed -i 's|API_URL_PLACEHOLDER|'"$API_URL"'|' /usr/share/nginx/html/main*.js && nginx -g 'daemon off;'
