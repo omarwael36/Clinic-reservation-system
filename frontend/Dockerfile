@@ -9,15 +9,14 @@ RUN npm install
 COPY . /app/
 RUN npm run build --prod
 
-FROM nginxinc/nginx-unprivileged:alpine3.18-perl
+FROM nginx:alpine
+COPY nginx.conf /etc/nginx/nginx.conf
+COPY --from=build /app/dist/frontend /usr/share/nginx/html
 
-# Copy Nginx configuration
-COPY --chown=nginx:nginx nginx.conf /etc/nginx/nginx.conf
+# Change permissions
+USER root
+RUN chmod -R 755 /usr/share/nginx/html
 
-# Copy built frontend files
-COPY --chown=nginx:nginx --from=build /app/dist/frontend /usr/share/nginx/html
-
-EXPOSE 8080
-
-# Set the environment variable for API URL
+# Expose and set CMD as you had it
+EXPOSE 80
 CMD ["sh", "-c", "sed -i 's|API_URL_PLACEHOLDER|$API_URL|' /usr/share/nginx/html/main*.js && nginx -g 'daemon off;'"]
