@@ -9,7 +9,7 @@ RUN npm install
 COPY . /app/
 
 ARG API_URL
-RUN sed -i "s|'YOUR_API_URL_HERE'|'$API_URL'|g" src/environments/environment.ts
+RUN sed -i "s|'https://clinic-reservation-system-git-omarwael20021-dev.apps.sandbox-m3.1530.p1.openshiftapps.com'|'$API_URL'|g" src/environments/environment.ts
 
 RUN npm run build --prod
 
