@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -18,8 +19,8 @@ func main() {
 
 	// CORS configuration
 	corsConfig := cors.DefaultConfig()
-	corsConfig.AllowOrigins = []string{"http://localhost:4200",
-	"https://clinic-reservation-system-frnt-git-omarwael20021-dev.apps.sandbox-m3.1530.p1.openshiftapps.com"} // Update with your Angular app's URL
+	frontendURL := os.Getenv("FRONTEND_URL")
+	corsConfig.AllowOrigins = []string{frontendURL}
 	corsConfig.AllowMethods = []string{"GET", "POST", "PUT", "DELETE"}
 	corsConfig.AllowHeaders = []string{"Origin", "Content-Length", "Content-Type", "Authorization"}
 	corsConfig.AllowCredentials = true
