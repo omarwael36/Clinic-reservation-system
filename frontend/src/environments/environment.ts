@@ -2,6 +2,6 @@
 
 export const environment = {
   production: false,
-  apiUrl: 'lol' 
+  apiUrl: 'lol'
 };
 

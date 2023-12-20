@@ -9,7 +9,7 @@ RUN npm install
 COPY . /app/
 
 ARG API_URL
-RUN sed -i "s|lol|${API_URL}|g" /app/src/environments/environment.ts
+RUN sed -i "s|lol|${API_URL}|g" /src/app/environments/environment.ts
 RUN npm run build --prod
 
 FROM nginxinc/nginx-unprivileged:alpine3.18-perl
