@@ -6,15 +6,23 @@ import { environment } from '../environments/environment';
   providedIn: 'root',
 })
 export class ApiService {
-    private apiUrl: string;
-  
-    constructor(private http: HttpClient) {
-      this.apiUrl = environment.apiUrl;
-    }
-  
-    setApiUrl(url: string): void {
-      this.apiUrl = url;
-    }
+  private apiUrl: string = ''; 
+
+  constructor(private http: HttpClient) {
+    this.fetchApiUrl();
+  }
+
+  private fetchApiUrl(): void {
+    this.http.get<any>('your/environment/endpoint')
+      .subscribe(
+        (config: any) => {
+          this.apiUrl = config.apiUrl; // Update the apiUrl
+        },
+        (error) => {
+          console.error('Error fetching API_URL', error);
+        }
+      );
+  }
   
 
   doctorSignIn(data: any): Observable<any> {
