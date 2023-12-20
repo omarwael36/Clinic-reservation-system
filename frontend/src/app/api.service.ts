@@ -2,27 +2,22 @@ import { HttpClient, HttpErrorResponse, HttpHeaders, HttpParams } from '@angular
 import { Injectable } from '@angular/core';
 import { Observable, catchError, throwError } from 'rxjs';
 import { environment } from '../environments/environment';
+interface CustomWindow extends Window {
+  env: {
+    apiUrl: string;
+    
+  };
+}
+
+const customWindow = window as unknown as CustomWindow;
+
 @Injectable({
   providedIn: 'root',
 })
 export class ApiService {
-  private apiUrl: string = ''; 
+  private apiUrl: string = customWindow.env.apiUrl;
 
-  constructor(private http: HttpClient) {
-    this.fetchApiUrl();
-  }
-
-  private fetchApiUrl(): void {
-    this.http.get<any>('your/environment/endpoint')
-      .subscribe(
-        (config: any) => {
-          this.apiUrl = config.apiUrl; // Update the apiUrl
-        },
-        (error) => {
-          console.error('Error fetching API_URL', error);
-        }
-      );
-  }
+  constructor(private http: HttpClient) {}
   
 
   doctorSignIn(data: any): Observable<any> {
