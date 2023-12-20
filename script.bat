@@ -1,5 +1,3 @@
-docker login
-
 docker network create mynetwork
 docker volume create myvolume
 
