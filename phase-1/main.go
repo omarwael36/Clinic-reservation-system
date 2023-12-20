@@ -19,8 +19,7 @@ func main() {
 
 	// CORS configuration
 	corsConfig := cors.DefaultConfig()
-	frontendURL := os.Getenv("FRONTEND_URL")
-	fmt.Println("Frontend URL:", frontendURL)
+	frontendURL,_ := os.LookupEnv("FRONTEND_URL")
 	corsConfig.AllowOrigins = []string{frontendURL}
 	corsConfig.AllowMethods = []string{"GET", "POST", "PUT", "DELETE"}
 	corsConfig.AllowHeaders = []string{"Origin", "Content-Length", "Content-Type", "Authorization"}
