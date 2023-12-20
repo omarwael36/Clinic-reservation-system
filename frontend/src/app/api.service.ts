@@ -2,20 +2,11 @@ import { HttpClient, HttpErrorResponse, HttpHeaders, HttpParams } from '@angular
 import { Injectable } from '@angular/core';
 import { Observable, catchError, throwError } from 'rxjs';
 import { environment } from '../environments/environment';
-interface CustomWindow extends Window {
-  env: {
-    apiUrl: string;
-    
-  };
-}
-
-const customWindow = window as unknown as CustomWindow;
-
 @Injectable({
   providedIn: 'root',
 })
 export class ApiService {
-  private apiUrl: string = customWindow.env.apiUrl;
+  private apiUrl = environment.apiUrl ;
 
   constructor(private http: HttpClient) {}
   
