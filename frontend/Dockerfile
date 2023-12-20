@@ -12,6 +12,3 @@ RUN npm run build --prod
 FROM nginxinc/nginx-unprivileged:alpine3.18-perl
 COPY --chown=nginx:nginx nginx.conf /etc/nginx/nginx.conf
 COPY --chown=nginx:nginx --from=build /app/dist/frontend /var/www/html/
-
-# Set the environment variable for API URL
-CMD ["sh", "-c", "sed -i 's|API_URL_PLACEHOLDER|$API_URL|' /var/www/html/main*.js && nginx -g 'daemon off;'"]
