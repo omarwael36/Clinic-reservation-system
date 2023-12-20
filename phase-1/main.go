@@ -18,7 +18,8 @@ func main() {
 
 	// CORS configuration
 	corsConfig := cors.DefaultConfig()
-	corsConfig.AllowOrigins = []string{"http://localhost:4200"} // Update with your Angular app's URL
+	corsConfig.AllowOrigins = []string{"http://localhost:4200",
+	"https://clinic-reservation-system-frnt-git-omarwael20021-dev.apps.sandbox-m3.1530.p1.openshiftapps.com"} // Update with your Angular app's URL
 	corsConfig.AllowMethods = []string{"GET", "POST", "PUT", "DELETE"}
 	corsConfig.AllowHeaders = []string{"Origin", "Content-Length", "Content-Type", "Authorization"}
 	corsConfig.AllowCredentials = true
