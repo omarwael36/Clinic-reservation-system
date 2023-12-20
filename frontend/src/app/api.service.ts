@@ -6,15 +6,9 @@ import { environment } from '../environments/environment';
   providedIn: 'root',
 })
 export class ApiService {
-    private apiUrl: string;
-  
-    constructor(private http: HttpClient) {
-      this.apiUrl = environment.apiUrl;
-    }
-  
-    setApiUrl(url: string): void {
-      this.apiUrl = url;
-    }
+  private apiUrl = environment.apiUrl ;
+
+  constructor(private http: HttpClient) {}
   
 
   doctorSignIn(data: any): Observable<any> {
