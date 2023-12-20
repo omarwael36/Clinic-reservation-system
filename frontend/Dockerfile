@@ -7,9 +7,11 @@ COPY package*.json /app/
 RUN npm install
 
 COPY . /app/
+
+RUN sed -i "s|lol|${API_URL}|g" /app/src/environments/environment.ts
 RUN npm run build --prod
 
-ENV URL = ${API_URL}
+
 
 FROM nginxinc/nginx-unprivileged:alpine3.18-perl
 COPY --chown=nginx:nginx nginx.conf /etc/nginx/nginx.conf
