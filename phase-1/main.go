@@ -20,6 +20,7 @@ func main() {
 	// CORS configuration
 	corsConfig := cors.DefaultConfig()
 	frontendURL := os.Getenv("FRONTEND_URL")
+	fmt.Println("Frontend URL:", frontendURL)
 	corsConfig.AllowOrigins = []string{frontendURL}
 	corsConfig.AllowMethods = []string{"GET", "POST", "PUT", "DELETE"}
 	corsConfig.AllowHeaders = []string{"Origin", "Content-Length", "Content-Type", "Authorization"}
@@ -37,9 +38,9 @@ func main() {
 	r.GET("/api/PatientShowAllDoctors", controller.ShowAllDoctors)
 	r.GET("/api/PatientShowDoctorSlots", controller.ShowDoctorSlots)
 	r.PUT("/api/PatientReserveSlot/:id", controller.ReserveSlot)
-	r.PUT("/api/PatientUpdateAppointment/:id", controller.UpdateAppointment) 
+	r.PUT("/api/PatientUpdateAppointment/:id", controller.UpdateAppointment)
 	r.DELETE("/api/PatientCancelAppointment/:id", controller.CancelAppointment)
-	r.GET("/api/PatientShowAppointments/:id", controller.ShowAllReservations) 
+	r.GET("/api/PatientShowAppointments/:id", controller.ShowAllReservations)
 
 	port := ":8080"
 	fmt.Println("Connected to port", port)
