@@ -2,6 +2,6 @@
 
 export const environment = {
     production: false,
-    apiUrl: 'http://localhost:8080',
+    apiUrl: 'https://clinic-reservation-system-git-omarwael20021-dev.apps.sandbox-m3.1530.p1.openshiftapps.com',
   };
   
