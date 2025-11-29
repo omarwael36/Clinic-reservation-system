@@ -33,7 +33,7 @@ pipeline {
                 echo 'Building database image...'
                 dir('phase-1') {
                     script {
-                        sh """
+                        bat """
                             docker build -t ${DATABASE_IMAGE}:${IMAGE_TAG} -f db.dockerfile .
                             docker tag ${DATABASE_IMAGE}:${IMAGE_TAG} ${DATABASE_IMAGE}:latest
                         """
@@ -47,7 +47,7 @@ pipeline {
                 echo 'Building backend image...'
                 dir('phase-1') {
                     script {
-                        sh """
+                        bat """
                             docker build -t ${BACKEND_IMAGE}:${IMAGE_TAG} -f Dockerfile .
                             docker tag ${BACKEND_IMAGE}:${IMAGE_TAG} ${BACKEND_IMAGE}:latest
                         """
@@ -61,7 +61,7 @@ pipeline {
                 echo 'Building frontend image...'
                 dir('frontend') {
                     script {
-                        sh """
+                        bat """
                             docker build --build-arg API_URL=${API_URL} -t ${FRONTEND_IMAGE}:${IMAGE_TAG} -f Dockerfile .
                             docker tag ${FRONTEND_IMAGE}:${IMAGE_TAG} ${FRONTEND_IMAGE}:latest
                         """
@@ -74,7 +74,7 @@ pipeline {
             steps {
                 echo 'Logging in to DockerHub...'
                 script {
-                    sh 'echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin'
+                    bat 'echo %DOCKERHUB_CREDENTIALS_PSW% | docker login -u %DOCKERHUB_CREDENTIALS_USR% --password-stdin'
                 }
             }
         }
@@ -83,7 +83,7 @@ pipeline {
             steps {
                 echo 'Pushing images to DockerHub...'
                 script {
-                    sh """
+                    bat """
                         docker push ${DATABASE_IMAGE}:${IMAGE_TAG}
                         docker push ${DATABASE_IMAGE}:latest
                         
@@ -101,10 +101,10 @@ pipeline {
             steps {
                 echo 'Cleaning up local images...'
                 script {
-                    sh """
-                        docker rmi ${DATABASE_IMAGE}:${IMAGE_TAG} ${DATABASE_IMAGE}:latest || true
-                        docker rmi ${BACKEND_IMAGE}:${IMAGE_TAG} ${BACKEND_IMAGE}:latest || true
-                        docker rmi ${FRONTEND_IMAGE}:${IMAGE_TAG} ${FRONTEND_IMAGE}:latest || true
+                    bat """
+                        docker rmi ${DATABASE_IMAGE}:${IMAGE_TAG} ${DATABASE_IMAGE}:latest 2>nul || echo Done
+                        docker rmi ${BACKEND_IMAGE}:${IMAGE_TAG} ${BACKEND_IMAGE}:latest 2>nul || echo Done
+                        docker rmi ${FRONTEND_IMAGE}:${IMAGE_TAG} ${FRONTEND_IMAGE}:latest 2>nul || echo Done
                     """
                 }
             }
@@ -114,7 +114,7 @@ pipeline {
     post {
         always {
             echo 'Logging out from DockerHub...'
-            sh 'docker logout'
+            bat 'docker logout'
         }
         success {
             echo 'Pipeline completed successfully!'
