@@ -1,0 +1,65 @@
+# Docker Compose for EC2 Deployment
+# This file is used to run the application on the EC2 instance
+
+version: '3.8'
+
+services:
+  database:
+    image: omarwael01/clinic-database:latest
+    container_name: clinic-database
+    restart: always
+    ports:
+      - "3306:3306"
+    environment:
+      - MYSQL_ROOT_PASSWORD=12345678
+      - MYSQL_DATABASE=clinic_reservation_system
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - clinic-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    image: omarwael01/clinic-backend:latest
+    container_name: clinic-backend
+    restart: always
+    ports:
+      - "8080:8080"
+    environment:
+      - DB_HOST=database
+      - DB_PORT=3306
+      - DB_USER=root
+      - DB_PASSWORD=12345678
+      - DB_NAME=clinic_reservation_system
+      - FRONTEND_URL=http://localhost:4200
+    depends_on:
+      database:
+        condition: service_healthy
+    networks:
+      - clinic-network
+
+  frontend:
+    image: omarwael01/clinic-frontend:latest
+    container_name: clinic-frontend
+    restart: always
+    ports:
+      - "80:8080"
+    environment:
+      - API_URL=http://localhost:8080
+    depends_on:
+      - backend
+    networks:
+      - clinic-network
+
+networks:
+  clinic-network:
+    driver: bridge
+
+volumes:
+  mysql_data:
+    driver: local
+

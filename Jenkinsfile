@@ -18,6 +18,10 @@ pipeline {
         
         // API URL for frontend
         API_URL = 'http://localhost:8080'
+        
+        // EC2 Configuration (update with your EC2 details)
+        EC2_HOST = 'your-ec2-public-ip'
+        EC2_USER = 'ec2-user'  // or 'ubuntu' for Ubuntu AMI
     }
     
     stages {
@@ -101,6 +105,26 @@ pipeline {
                         docker rmi ${BACKEND_IMAGE}:${IMAGE_TAG} ${BACKEND_IMAGE}:latest || true
                         docker rmi ${FRONTEND_IMAGE}:${IMAGE_TAG} ${FRONTEND_IMAGE}:latest || true
                     """
+                }
+            }
+        }
+        
+        stage('Deploy to EC2') {
+            steps {
+                echo 'Deploying to EC2...'
+                script {
+                    // Use SSH to connect to EC2 and run deploy script
+                    sshagent(['ec2-ssh-key']) {
+                        sh """
+                            ssh -o StrictHostKeyChecking=no ${EC2_USER}@${EC2_HOST} '
+                                cd ~/clinic-app && 
+                                docker-compose pull && 
+                                docker-compose down && 
+                                docker-compose up -d && 
+                                docker image prune -f
+                            '
+                        """
+                    }
                 }
             }
         }
