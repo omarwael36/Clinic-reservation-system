@@ -35,7 +35,7 @@ services:
       - DB_USER=root
       - DB_PASSWORD=12345678
       - DB_NAME=clinic_reservation_system
-      - FRONTEND_URL=http://localhost:4200
+      - FRONTEND_URL=*
     depends_on:
       database:
         condition: service_healthy

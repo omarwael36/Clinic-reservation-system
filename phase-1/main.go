@@ -19,8 +19,13 @@ func main() {
 
 	// CORS configuration
 	corsConfig := cors.DefaultConfig()
-	frontendURL,_ := os.LookupEnv("FRONTEND_URL")
-	corsConfig.AllowOrigins = []string{frontendURL}
+	frontendURL, exists := os.LookupEnv("FRONTEND_URL")
+	if !exists || frontendURL == "" {
+		// Allow all origins if FRONTEND_URL is not set
+		corsConfig.AllowAllOrigins = true
+	} else {
+		corsConfig.AllowOrigins = []string{frontendURL}
+	}
 	corsConfig.AllowMethods = []string{"GET", "POST", "PUT", "DELETE"}
 	corsConfig.AllowHeaders = []string{"Origin", "Content-Length", "Content-Type", "Authorization"}
 	corsConfig.AllowCredentials = true
